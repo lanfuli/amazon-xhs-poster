@@ -177,18 +177,30 @@ def main():
                 "ai_positioning": "",
                 "dedupe_window_days": int(paths_cfg.get("history_lookback_days") or 30)
             },
-            "design": {
-                "theme": "auto",
-                "style": "iphone-notes-editorial-v4",
-                "ratio": "3:4",
-                "width": 1080,
-                "height": 1440,
-                "cards": p_defaults["card_min"],
-                "cards_min": p_defaults["card_min"],
-                "cards_max": p_defaults["card_max"],
-                "accent_strategy": "color-psychology",
-                "renders_cards": p_defaults["renders_cards"]
-            },
+            "design": (
+                {
+                    # Carousel platforms: full design block including style & ratio
+                    "theme": "auto",
+                    "style": "iphone-notes-editorial-v4",
+                    "ratio": "3:4",
+                    "width": 1080,
+                    "height": 1440,
+                    "cards": p_defaults["card_min"],
+                    "cards_min": p_defaults["card_min"],
+                    "cards_max": p_defaults["card_max"],
+                    "accent_strategy": "color-psychology",
+                    "renders_cards": True,
+                }
+                if p_defaults["renders_cards"]
+                else {
+                    # Text-only platforms (LinkedIn, X): no card rendering, so
+                    # design.style and ratio are meaningless. Keep cards=0 only.
+                    "cards": 0,
+                    "cards_min": 0,
+                    "cards_max": 0,
+                    "renders_cards": False,
+                }
+            ),
             "xhs": {
                 "title": "",
                 "title_max_length": int(

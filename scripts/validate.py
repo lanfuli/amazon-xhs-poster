@@ -466,9 +466,11 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         if not must_contain_list:
             info.append(
                 "config.title_constraints.must_contain is set to an empty list — "
-                "title keyword requirement is DISABLED. Set to null to use the "
-                "language default, or ['Amazon', ...] to require any of those tokens."
+                "the must-contain keyword check (across title / body / cards / "
+                "hashtags) is DISABLED. Set to null to use the language default, "
+                "or ['Amazon', ...] to require any of those tokens."
             )
+    must_contain_lower = [kw.lower() for kw in must_contain_list]
 
     xhs = post.get("xhs") or {}
     persona = post.get("persona") or {}
@@ -482,16 +484,15 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
     tags = normalized_tags(post)
 
     # Title checks — only enforced when the platform has a title concept.
+    # The must_contain keyword check is intentionally NOT done here at the
+    # title level; it's checked against the full public corpus further
+    # below so that text-only platforms (LinkedIn, X, IG with empty title)
+    # still get the keyword requirement enforced via body / thread / cards.
     if preset["title_required"] and not title:
         errors.append("xhs.title is empty")
     if title and title_max > 0 and len(title) > title_max:
         errors.append(
             f"xhs.title exceeds {title_max} characters (platform={platform!r}): {len(title)}"
-        )
-    if must_contain_list and title and not any(kw in title for kw in must_contain_list):
-        errors.append(
-            f"xhs.title must include at least one of {must_contain_list} "
-            f"(per config.title_constraints.must_contain)"
         )
 
     # Body cap (skipped if preset.body_max is None, e.g. xiaohongshu uses
@@ -510,6 +511,12 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
 
     # Thread mode (X / Threads). Each post must respect body_max.
     if preset.get("supports_thread") and thread:
+        # X-specific: content and thread are mutually exclusive
+        if platform == "x" and content and thread:
+            errors.append(
+                f"xhs.content and xhs.thread are mutually exclusive for platform {platform!r}; "
+                f"set xhs.content for a single tweet OR xhs.thread for a thread, not both"
+            )
         thread_limit = preset.get("thread_max_posts")
         per_post_limit = preset["body_max"]
         if thread_limit and len(thread) > thread_limit:
@@ -528,9 +535,11 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
                     f"xhs.thread[{i}] exceeds {per_post_limit} characters: {t_len}{note}"
                 )
     elif thread and not preset.get("supports_thread"):
-        warnings.append(
-            f"xhs.thread is set but platform {platform!r} does not support thread mode; "
-            f"thread will be ignored"
+        # Hard-fail: thread on a platform that doesn't support it would silently
+        # drop the thread content during render. Better to make the user pick.
+        errors.append(
+            f"xhs.thread is set but platform {platform!r} does not support thread mode. "
+            f"Either remove xhs.thread, or switch to a thread-capable platform (e.g. 'x')."
         )
 
     if expected_brand_cn and persona.get("brand_cn") != expected_brand_cn:
@@ -596,11 +605,15 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         errors.append(
             f"hashtags exceeding {hashtag_token_max} chars for {platform!r}: {overlong}"
         )
-    if tags and must_contain_list and not any(
-        any(kw in t for kw in must_contain_list) for t in tags
+    # Hashtag-level must_contain check (case-insensitive). Useful for platforms
+    # where hashtag-driven discovery matters (XHS, Lemon8, IG). For text-only
+    # platforms with low hashtag count this is a weaker signal but still
+    # checked when tags are present.
+    if tags and must_contain_lower and not any(
+        any(kw in t.lower() for kw in must_contain_lower) for t in tags
     ):
         errors.append(
-            f"at least one hashtag must include one of {must_contain_list}"
+            f"at least one hashtag must include one of {must_contain_list} (case-insensitive)"
         )
 
     topic_sources = (post.get("topic") or {}).get("sources") or []
@@ -611,6 +624,9 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             )
 
     merged_public = [title, content]
+    # Include thread items so X / threads-mode posts contribute to corpus checks.
+    for t_item in thread:
+        merged_public.append(str(t_item or ""))
     for card in cards:
         merged_public.extend([
             str(card.get("eyebrow") or ""),
@@ -620,6 +636,18 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             str(card.get("footer") or ""),
         ])
     public_blob = "\n".join(merged_public)
+    public_blob_lower = public_blob.lower()
+
+    # CORPUS-LEVEL must_contain check: at least one keyword must appear
+    # somewhere in the public copy (title / body / thread / cards). Replaces
+    # the old title-only check which silently bypassed when title was empty
+    # (Bug 1 in v1.3.0 audit). Case-insensitive throughout.
+    if must_contain_lower and not any(kw in public_blob_lower for kw in must_contain_lower):
+        errors.append(
+            f"public copy must mention at least one of {must_contain_list} "
+            f"somewhere in title / body / thread / cards (case-insensitive). "
+            f"Per config.title_constraints.must_contain."
+        )
     src_token = text_contains_any(public_blob, forbidden_sources)
     if src_token:
         errors.append(
@@ -642,12 +670,20 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
     recent_history = load_recent_history(post_path)
     history_rows = (recent_history or {}).get("recent_posts") or []
 
-    if recent_history is None:
-        info.append(
-            "no recent_history.json found in research/ — "
-            "skipping 7-day title dedup, 3-day CTA similarity, and 14-day ceiling checks "
-            "(cold-start mode)"
-        )
+    cold_start = recent_history is None or not history_rows
+    if cold_start:
+        if recent_history is None:
+            info.append(
+                "no recent_history.json found in research/ — "
+                "skipping 7-day title dedup, 3-day CTA similarity, and 14-day ceiling checks "
+                "(cold-start mode)"
+            )
+        else:
+            info.append(
+                "recent_history.json exists but contains zero posts — "
+                "dedup checks will silently skip until at least one historical post is recorded "
+                "(cold-start mode)"
+            )
 
     if title and history_rows:
         last_7d_titles = [
@@ -735,7 +771,7 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         "language": language,
         "platform": platform,
         "history_rows": len(history_rows),
-        "cold_start": recent_history is None,
+        "cold_start": cold_start,
     }
     return errors, warnings, summary, info
 
