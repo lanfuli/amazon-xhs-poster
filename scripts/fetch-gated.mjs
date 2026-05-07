@@ -587,28 +587,31 @@ async function fetchWearesellers() {
           await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
           await sleep(1500);
           const hotTag = link.isHot ? ' [hot]' : '';
-          // wearesellers uses class names like .question-content, .answer-content,
-          // .article-detail. Try a list of selectors and concatenate visible
-          // text from the question + first-best answer.
+          // wearesellers question pages use WeCenter-style classes (verified
+          // via CDP probe on logged-in view 2026-05-07):
+          //   .aw-question-detail — wraps the question post
+          //   .mod-body           — body block of question OR answer
+          //   .content.markitup-box — markdown-rendered content
+          // The page typically has 1 question .mod-body and N answer
+          // .mod-body siblings. We grab the question detail first, then
+          // the first 1-2 answer bodies, and concatenate.
           const body = await page.evaluate(() => {
-            const sels = [
-              '.question-detail',
-              '.question-content',
-              '.article-content',
-              '.article-detail',
-              '.post-content',
-              '.aw-mod-body',  // legacy WeCenter forum class
-              'article',
-            ];
-            let chunks = [];
-            for (const s of sels) {
-              document.querySelectorAll(s).forEach(el => {
-                const txt = el.innerText?.trim();
-                if (txt && txt.length > 30) chunks.push(txt);
-              });
-              if (chunks.length) break; // first matching class is enough
+            // Prefer .mod-body since that's the cleanest content slice.
+            // Take up to 3 of them (question + 2 best answers).
+            const modBodies = Array.from(document.querySelectorAll('.mod-body'))
+              .filter(el => el.innerText?.trim().length > 50)
+              .slice(0, 3);
+            if (modBodies.length) {
+              return modBodies.map(el => el.innerText.trim()).join('\n\n').slice(0, 1500);
             }
-            return chunks.join('\n\n').slice(0, 800);
+            // Fallback: try .aw-question-detail then .content.markitup-box
+            for (const sel of ['.aw-question-detail', '.content.markitup-box', '.aw-main-content']) {
+              const el = document.querySelector(sel);
+              if (el?.innerText?.trim().length > 100) {
+                return el.innerText.trim().slice(0, 1500);
+              }
+            }
+            return '';
           }).catch(() => '');
           lines.push(`- **${link.text}**${hotTag}`);
           lines.push(`  ${cleanUrl}`);
