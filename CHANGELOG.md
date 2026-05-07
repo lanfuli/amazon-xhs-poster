@@ -4,6 +4,38 @@ All notable changes to this project are documented here. Format inspired
 by [Keep a Changelog](https://keepachangelog.com/); the project follows
 [Semantic Versioning](https://semver.org/) where reasonable.
 
+## [v1.4.2] — 2026-05-07
+
+### Added
+
+- **`fetch-gated.mjs --connect-cdp [url]`** — connect to an
+  already-running real Chrome via Chrome DevTools Protocol instead of
+  launching Playwright's bundled Chromium. Workaround for Google's
+  "This browser or app may not be secure" block (which targets
+  Playwright Chromium's automation indicators; real Chrome doesn't
+  trigger it).
+
+- **`scripts/launch-chrome-debug.sh`** — one-line helper that quits
+  Chrome cleanly via AppleScript, then relaunches with
+  `--remote-debugging-port=9222` so the fetcher can attach via CDP.
+  Supports `--help` and validates the port arg is numeric so it
+  doesn't accidentally kill Chrome on malformed input.
+
+- `references/gated-sources.md` — both flow paths (Option A:
+  Playwright Chromium with separate profile; Option B: CDP attach to
+  real Chrome) documented with explicit "Google blocks me" trigger.
+
+### Behavior
+
+- `--connect-cdp` opens new tabs in your real Chrome for fetch
+  targets, reads DOM, closes those tabs only. Does NOT close your
+  Chrome window or touch your existing tabs.
+- `--connect-cdp --setup` just verifies the connection (Chrome
+  reachable + can open a page) — there's no separate "log in to
+  Playwright profile" step because you're already logged in via
+  your real Chrome.
+- The persistent-profile flow (Option A) is still the default.
+
 ## [v1.4.1] — 2026-05-07
 
 Doc-only patch.
@@ -214,7 +246,8 @@ Initial public release. Single platform (Xiaohongshu), Chinese-first.
 - Generate-only by default; opt-in `publish_adapter` hook for those
   who genuinely want to automate publishing.
 
-[v1.4.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.0...main
+[v1.4.2]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.1...main
+[v1.4.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.1...v1.4.0
 [v1.3.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/lanfuli/amazon-xhs-poster/releases/tag/v1.3.0

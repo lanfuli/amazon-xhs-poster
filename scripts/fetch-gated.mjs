@@ -42,10 +42,24 @@ const HEADED_MODE = flag('--headed') || SETUP_MODE;
 const DATE_OVERRIDE = opt('--date');
 const CONFIG_PATH_OVERRIDE = opt('--config');
 const DRY_RUN = flag('--dry-run');
+const CONNECT_CDP = flag('--connect-cdp');
+const CDP_URL = opt('--connect-cdp') || 'http://localhost:9222';
 
 if (flag('-h') || flag('--help')) {
   console.log(`fetch-gated.mjs — fetch X / LinkedIn / wearesellers content
-  --setup            First run: open headed browser, you log in, profile saves
+
+USAGE
+  --setup            First run: open headed Playwright Chromium (separate
+                     profile), you log in there, profile saves to disk
+  --connect-cdp [url] Connect to an already-running real Chrome via Chrome
+                     DevTools Protocol (default url: http://localhost:9222).
+                     Use this if Google blocks Playwright Chromium with
+                     "This browser or app may not be secure" — connecting
+                     to your real Chrome bypasses that detection because
+                     Google sees a real Chrome (not Playwright Chromium).
+                     Pre-requisite: Chrome must be running with the flag
+                     --remote-debugging-port=9222. See:
+                       scripts/launch-chrome-debug.sh
   --date YYYY-MM-DD  Job date (default: today PT)
   --config <path>    Override config.json path
   --headed           Run with browser visible (debugging)
@@ -117,8 +131,11 @@ const outputPath = path.join(researchDir, 'gated-signal.md');
 await fs.mkdir(researchDir, { recursive: true });
 await fs.mkdir(profileDir, { recursive: true });
 
+const browserMode = CONNECT_CDP
+  ? `CDP (${CDP_URL}) — connect to existing Chrome`
+  : `persistent Chromium profile (${profileDir})`;
 console.log(`config:    ${cfgPath}`);
-console.log(`profile:   ${profileDir}`);
+console.log(`browser:   ${browserMode}`);
 console.log(`output:    ${outputPath}`);
 console.log(`date:      ${date}`);
 console.log(`mode:      ${SETUP_MODE ? 'SETUP' : (DRY_RUN ? 'DRY-RUN' : 'FETCH')}`);
@@ -155,8 +172,41 @@ function within24h(timestampStr) {
   return ageHours <= lookbackHours;
 }
 
-// ----- launch browser -----
+// ----- launch / connect browser -----
+//
+// Two modes:
+//   1) Persistent Chromium profile (default): Playwright manages its own
+//      Chromium binary in a separate profile dir. Fast, isolated, but Google
+//      sometimes flags this with "browser may not be secure" because
+//      Playwright Chromium has detectable automation indicators.
+//   2) CDP connect to existing Chrome (--connect-cdp): connects to a
+//      separately-launched real Chrome via Chrome DevTools Protocol. Real
+//      Chrome bypasses Google's "may not be secure" check. The user must
+//      have launched Chrome with --remote-debugging-port=9222 (see
+//      scripts/launch-chrome-debug.sh).
 async function launchBrowser() {
+  if (CONNECT_CDP) {
+    let browser;
+    try {
+      browser = await chromium.connectOverCDP(CDP_URL, { timeout: 5000 });
+    } catch (e) {
+      console.error(`Failed to connect to Chrome via CDP at ${CDP_URL}.`);
+      console.error('');
+      console.error('Make sure Chrome is running with --remote-debugging-port=9222:');
+      console.error('  bash scripts/launch-chrome-debug.sh');
+      console.error('  # or manually: open -na "Google Chrome" --args --remote-debugging-port=9222');
+      console.error('');
+      console.error(`Original error: ${e.message}`);
+      process.exit(1);
+    }
+    const ctxs = browser.contexts();
+    const ctx = ctxs[0] || await browser.newContext();
+    // Tag so we know how to clean up: do NOT close the browser at the end
+    // because that would close the user's whole Chrome.
+    ctx._isCDP = true;
+    ctx._browser = browser;
+    return ctx;
+  }
   return await chromium.launchPersistentContext(profileDir, {
     headless: !HEADED_MODE,
     viewport: { width: 1280, height: 900 },
@@ -164,11 +214,47 @@ async function launchBrowser() {
   });
 }
 
-// ----- SETUP mode: just open browser, let user log in, exit on Ctrl+C -----
+async function closeContext(ctx) {
+  if (ctx._isCDP) {
+    // Don't close the user's Chrome; just disconnect Playwright.
+    await ctx._browser.close();
+  } else {
+    await ctx.close();
+  }
+}
+
+// ----- SETUP mode -----
 if (SETUP_MODE) {
-  console.log('⚠️  SETUP MODE');
-  console.log('This will open a Chrome window with a fresh profile.');
-  console.log('Log in to whichever services you want fetched:');
+  if (CONNECT_CDP) {
+    console.log('⚠️  SETUP MODE + --connect-cdp');
+    console.log('Verifying Chrome is reachable at', CDP_URL, '...');
+    const ctx = await launchBrowser();
+    const page = await ctx.newPage();
+    try {
+      await page.goto('https://x.com/home', { timeout: 10000 });
+      const title = await page.title();
+      console.log(`✓ Connected. Active tab title: ${title}`);
+      console.log('Make sure your Chrome is already logged into:');
+      console.log('  • https://x.com/');
+      console.log('  • https://www.linkedin.com/');
+      console.log('  • https://www.wearesellers.com/');
+      console.log('Once logged in there, run without --setup to fetch.');
+    } finally {
+      await page.close();
+      await closeContext(ctx);
+    }
+    process.exit(0);
+  }
+
+  console.log('⚠️  SETUP MODE (Playwright Chromium, separate profile)');
+  console.log('This opens a Chromium window with a fresh profile.');
+  console.log('');
+  console.log('Note: Google sometimes blocks Playwright Chromium with');
+  console.log('"This browser or app may not be secure". If that happens,');
+  console.log('cancel and use --connect-cdp instead — see');
+  console.log('references/gated-sources.md.');
+  console.log('');
+  console.log('Otherwise, log in to whichever services you want fetched:');
   console.log('  • https://x.com/login');
   console.log('  • https://www.linkedin.com/login');
   console.log('  • https://www.wearesellers.com/account/login/');
@@ -181,12 +267,11 @@ if (SETUP_MODE) {
   const page = ctx.pages()[0] || await ctx.newPage();
   await page.goto('https://x.com/login');
 
-  // Wait for browser close or signal
   await new Promise((resolve) => {
     process.on('SIGINT', () => { console.log('\nClosing...'); resolve(); });
     ctx.on('close', resolve);
   });
-  await ctx.close();
+  await closeContext(ctx);
   console.log('✓ Profile saved to', profileDir);
   console.log('Run fetch-gated.mjs without --setup next time.');
   process.exit(0);
@@ -405,7 +490,7 @@ for (const fn of [fetchX, fetchLinkedIn, fetchWearesellers]) {
   }
 }
 
-await ctx.close();
+await closeContext(ctx);
 
 // ----- write output -----
 const ts = new Date().toISOString();

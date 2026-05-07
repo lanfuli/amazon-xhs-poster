@@ -110,19 +110,79 @@ strings (e.g. `doug-herrington-5b4a6710`).
 
 ### 3. First-run setup (interactive login)
 
+You have **two options** — pick based on whether Google blocks the
+default Playwright Chromium with "This browser or app may not be
+secure" when you try to log in.
+
+#### Option A — Playwright Chromium (default, simpler)
+
 ```bash
 node ~/.claude/skills/amazon-xhs-poster/scripts/fetch-gated.mjs --setup
 ```
 
-This opens a visible Chrome window with a fresh profile. Log into:
-
-- **X**: https://x.com/login
-- **LinkedIn**: https://www.linkedin.com/login
-- **wearesellers**: https://www.wearesellers.com/account/login/
-
-You can skip any service you don't need. Close the window (or Ctrl+C
-in the terminal) when done. Cookies are saved to your
+Opens a Chromium window with a fresh profile (separate from your
+daily Chrome). Log into the services you want fetched, close the
+window or Ctrl+C in the terminal. Cookies save to
 `browser_profile_dir`.
+
+⚠ **If Google says "This browser or app may not be secure"** during
+X / LinkedIn login, that's because Playwright's Chromium has
+detectable automation indicators. **Switch to Option B**.
+
+#### Option B — Connect to your real Chrome via CDP (workaround)
+
+This uses your **actual Chrome** (already logged in to everything),
+attaching via Chrome DevTools Protocol. Google sees real Chrome and
+doesn't trigger the "may not be secure" warning.
+
+One-time prep — quit Chrome and relaunch it with the debug flag. The
+shipped helper does this in one command:
+
+```bash
+cd ~/.claude/skills/amazon-xhs-poster
+bash scripts/launch-chrome-debug.sh
+```
+
+This quits your existing Chrome (cleanly via AppleScript) and
+relaunches it with `--remote-debugging-port=9222`. Your normal
+profile loads — all your existing logins are preserved.
+
+Then verify the connection:
+
+```bash
+node scripts/fetch-gated.mjs --connect-cdp --setup
+```
+
+If that prints `✓ Connected. Active tab title: …`, you're good. If
+you weren't already logged in to one of X / LinkedIn /
+wearesellers in your daily Chrome, log in normally in your Chrome
+window now (the script doesn't need to drive that part — Google
+treats it as a normal user login).
+
+#### Daily fetch
+
+For Option A: `node scripts/fetch-gated.mjs --date YYYY-MM-DD`
+
+For Option B: keep Chrome running with the debug flag (re-run
+`launch-chrome-debug.sh` after every reboot or full Chrome quit), then:
+
+```bash
+node scripts/fetch-gated.mjs --connect-cdp --date YYYY-MM-DD
+```
+
+#### How CDP mode behaves with your daily Chrome
+
+When you run with `--connect-cdp`, the script:
+
+- **Opens new tabs** for each fetch target (does not touch your
+  existing tabs)
+- Reads the page DOM (no posts, likes, follows, DMs)
+- **Closes only the tabs it opened** when done
+- Does **not** close your Chrome window
+
+If your bank tab / email / whatever is open in Chrome, it stays
+exactly where it was. The script's only side effect is briefly using
+your network and CPU.
 
 ### 4. Daily fetch
 
