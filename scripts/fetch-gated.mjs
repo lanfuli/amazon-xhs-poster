@@ -32,9 +32,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // ----- CLI args -----
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
+// opt() returns the value AFTER `name`, but only if that value isn't itself
+// another flag (i.e. doesn't start with `--`). This means `--connect-cdp
+// --setup` correctly treats --connect-cdp as a flag (no value) and --setup
+// as the next flag, instead of binding --setup as --connect-cdp's value.
 const opt = (name) => {
   const i = args.indexOf(name);
-  return i >= 0 && i + 1 < args.length ? args[i + 1] : null;
+  if (i < 0 || i + 1 >= args.length) return null;
+  const next = args[i + 1];
+  if (next.startsWith('--')) return null;
+  return next;
 };
 
 const SETUP_MODE = flag('--setup');
