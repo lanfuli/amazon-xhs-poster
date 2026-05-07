@@ -42,12 +42,19 @@ In the config, at minimum:
 - Set `persona.brand_cn` (your account brand / display string)
 - Set `persona.identity` and `persona.signature`
 - Pick a real path for `paths.drafts_root`
-- Pick `output_language`: `"zh"` (default — Chinese, optimized for
-  Xiaohongshu) or `"en"` (English, for Lemon8 / Threads / Instagram-equivalent)
+- Pick `output_language`: `"zh"` (default — Chinese) or `"en"` (English)
+- Pick `platform`: which surface you're publishing to. Choices:
+  - `"xiaohongshu"` (default) — 6–9 image cards, ≤20 char title
+  - `"lemon8"` — 6–10 image cards, ≤30 char title
+  - `"linkedin"` — long-form text, ≤3000 chars, 3–5 hashtags, no cards
+  - `"x"` — single tweet (≤280) or thread of up to 25, 0–2 hashtags
+  - `"instagram"` — 1–10 carousel + ≤2200 char caption, 5–30 hashtags
 
 That's it for first run. The other defaults (angle quotas, forbidden source
 tokens, hashtag rules) are sensible starting points; adjust over time per
 [`references/customization.md`](references/customization.md).
+See [`references/platforms.md`](references/platforms.md) for full
+platform-specific rules and cross-posting workflows.
 
 ## How to use it
 

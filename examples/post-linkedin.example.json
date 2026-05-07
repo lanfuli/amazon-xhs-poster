@@ -1,0 +1,93 @@
+{
+  "_comment": "LinkedIn post — text-only, no carousel. Set config.platform = 'linkedin' and config.output_language = 'en'. Body ≤ 3000 chars; 3-5 hashtags placed at end of body; cards must be empty.",
+
+  "version": "1.1",
+  "job_date": "2026-05-07",
+  "language": "en",
+  "platform": "linkedin",
+
+  "persona": {
+    "identity": "10-year Amazon operator, currently running an 8-figure private label",
+    "brand_cn": "Vincent Reyes",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "calm, evidence-led, slightly contrarian, opinionated about ops",
+    "signature": "Vincent Reyes"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "Amazon's Frequently Returned badge appears on the product detail page itself when category-baseline return-rate thresholds are breached. Sellers running FBA usually find out weeks after conversion has already collapsed because Amazon doesn't notify them. Prime Day prep is exactly when return rates spike — sellers should audit returns before the event.",
+    "why_now": "Prime Day 2026 is ~5 weeks out. Spring promo just ended; the post-promo return wave likely already pushed several SKUs over their FBA return rate thresholds.",
+    "selection_reason": "risk-warning: 14d count=2, floor=2; high-leverage timing for Prime Day prep",
+    "sources": [
+      "https://sellercentral.amazon.com/help/hub/reference/external/G202175570",
+      "https://www.aboutamazon.com/news/retail",
+      "https://advertising.amazon.com/library"
+    ]
+  },
+
+  "seo": {
+    "primary_keywords": ["Amazon return rate", "Frequently Returned", "Prime Day prep"],
+    "secondary_keywords": ["FBA returns", "conversion optimization"],
+    "hashtags": ["#Amazon", "#FBA", "#ReturnRate", "#PrimeDay"]
+  },
+
+  "strategy": {
+    "attention_goal": "Stop the scroll on the LinkedIn feed in the first 1–2 lines",
+    "psychology_hooks": ["loss-aversion", "credible-urgency", "operator-authority"],
+    "ai_positioning": "AI mentioned only as a workflow lever (decision-switch framing).",
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "ratio": "n/a",
+    "cards": 0,
+    "cards_min": 0,
+    "cards_max": 0,
+    "renders_cards": false,
+    "accent_strategy": "n/a-for-text-only"
+  },
+
+  "xhs": {
+    "title": "",
+    "title_max_length": 0,
+    "opening_hook": "Your top SKU might already be wearing a label that quietly drops conversion 20-40%. You won't get notified.",
+    "content": "Your top SKU might already be wearing a label that quietly drops conversion 20-40%. You won't get notified.\n\nIt's called Frequently Returned. Amazon attaches it when a product's return rate sits above the category baseline, and it shows up directly on the detail page where every shopper sees it.\n\nThe brutal part: Amazon doesn't tell you. If you're not actively pulling returns reports, you might be wearing the badge for weeks while you keep paying for the same ad clicks that now convert at half the rate.\n\nWhat triggers it:\n• Return rate above category average\n• Returns clustering around \"not as described\" or \"quality issues\"\n• Post-promo spikes — exactly what happens after Prime Day or spring sales\n\nOnce flagged, you need weeks of below-average returns to remove it. Prime Day won't wait.\n\nThree things to do this week if you sell physical products on Amazon:\n\n1. Pull the FBA returns report. For every SKU, log return rate and the top three return reasons.\n2. For SKUs above category average, fix the detail page first — real photos, sizing chart, materials, expectations. Buyers refund what didn't match what they thought they were buying.\n3. For SKUs that are persistently broken and can't be fixed in 4-5 weeks, pause ads or remove them before Prime Day amplifies the problem.\n\nThe operator move here isn't \"work harder\" — it's deciding which SKUs to stop spending behind, before the platform decides for you.\n\nWhat's your audit cadence on returns?\n\n#Amazon #FBA #ReturnRate #PrimeDay",
+    "cta": "What's your audit cadence on returns?",
+    "tags": ["Amazon", "FBA", "ReturnRate", "PrimeDay"],
+    "thread": [],
+    "append_hashtags_to_content": true,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-07",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-07/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-07/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-07/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-07/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "skipped-no-cards",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "LinkedIn-shaped: hook in first sentence, 3 short paragraphs evidence, 3-step action list, single-question CTA",
+    "card 6 'Follow' satisfies EN cta_tokens via 'follow' implied; LinkedIn doesn't have card 6 so check N/A",
+    "decision verbs present: 'pause', 'remove', 'fix', 'decide which to stop'"
+  ],
+
+  "job_type": "daily"
+}

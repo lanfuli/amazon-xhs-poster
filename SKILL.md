@@ -1,7 +1,7 @@
 ---
 name: amazon-xhs-poster
-description: Generate one Amazon-seller-themed creator post — 6-9 deterministic PNG cards plus a post.md ready for manual upload to Xiaohongshu (default), Lemon8, Threads, or any multi-card creator surface. Supports Chinese (default) or English output via config.output_language. Trigger when the user says "写小红书 amazon post / 亚马逊小红书 / 来一篇亚马逊笔记 / xhs amazon / amazon seller post / amazon creator note" or asks for a multi-card seller-audience post. Generates artifacts only; does NOT auto-publish unless the user explicitly enables a publish adapter in their config.
-version: 1.1.0
+description: Generate one Amazon-seller post tailored to a specific platform — Xiaohongshu (default, 6-9 cards), Lemon8 (6-10 cards), LinkedIn (long-form text, ≤3000 chars, 3-5 hashtags), X / Twitter (single tweet ≤280 chars OR thread of up to 25), or Instagram (1-10 carousel + ≤2200 char caption). Each platform has its own char limits, hashtag rules, card count range, and post.md output layout. Supports Chinese (default) or English output via config.output_language. Trigger when the user says "写小红书 amazon post / 亚马逊小红书 / amazon seller post / linkedin amazon post / x amazon thread / instagram amazon carousel" or asks for a platform-specific seller-audience post. Generates artifacts only; does NOT auto-publish unless the user explicitly enables a publish adapter in their config.
+version: 1.2.0
 ---
 
 # Amazon XHS Poster
@@ -22,8 +22,10 @@ upload to the Xiaohongshu app.
    [`config.example.json`](config.example.json) to `~/.config/amazon-xhs-poster/config.json`
    (or wherever; set `XHS_AMAZON_CONFIG=<path>`) and fill in `persona.brand_cn`.
    The validator refuses to run while it still says `REPLACE_ME`. Pick
-   `output_language: "zh"` or `"en"` here too — it changes the title
-   keyword, CTA tokens, decision verbs, and post.md header language.
+   `output_language: "zh"` or `"en"` AND `platform: "xiaohongshu" |
+   "lemon8" | "linkedin" | "x" | "instagram"` here — they change the title
+   keyword, CTA tokens, char limits, hashtag rules, card count range, and
+   post.md output layout. See [references/platforms.md](references/platforms.md).
 3. **Voice supremacy.** When any pattern in the references would force a
    sentence the persona wouldn't say, **drop the pattern**, write the
    natural line, and append the reason to `post.json.qa_notes`. Mechanical
@@ -148,21 +150,36 @@ risk.**
 
 ## Quick triggers (when to invoke)
 
-- "写小红书 amazon post"
-- "亚马逊小红书"
-- "xhs amazon" / "amazon xhs"
-- "来一篇亚马逊笔记"
-- "今天的小红书亚马逊更新"
-- Any request to produce a 6–9 card XHS post for Amazon sellers
+- "写小红书 amazon post" / "亚马逊小红书" / "xhs amazon" / "来一篇亚马逊笔记"
+- "amazon seller post" / "amazon creator note"
+- "linkedin amazon post" / "linkedin amazon thread"
+- "x amazon post" / "amazon twitter thread" / "amazon x thread"
+- "instagram amazon carousel" / "ig amazon post"
+- "lemon8 amazon post"
+- Any request to produce a platform-specific Amazon-seller-audience post
 
 ## Quick triggers (when NOT to invoke)
 
-- AI-builder digest / 9-card AI content (different methodology — the
-  Amazon flow uses 6–9 cards with a different theme palette, validator,
-  and source ladder)
-- Single-image XHS posts
-- Video XHS content
-- English-only LinkedIn / Twitter posts (use a different skill)
+- AI-builder digest / 9-card AI content (different methodology)
+- Single-image (non-carousel) XHS posts
+- Video content
+- Non-Amazon-seller audiences
+
+## Platform support
+
+Set `config.platform` to one of:
+
+| Platform     | Format            | Title cap | Body cap | Hashtags  | Cards |
+|--------------|-------------------|-----------|----------|-----------|-------|
+| xiaohongshu  | image carousel    | 20 chars  | (soft)   | 5–10      | 6–9   |
+| lemon8       | image carousel    | 30 chars  | 2000     | 5–15      | 6–10  |
+| linkedin     | long-form text    | (none)    | 3000     | 3–5       | 0     |
+| x            | post or thread    | (none)    | 280/post | 0–2       | 0     |
+| instagram    | carousel + caption| (none)    | 2200     | 5–30      | 1–10  |
+
+See [references/platforms.md](references/platforms.md) for full per-platform
+rules, post.json shape (especially `xhs.thread` for X), and cross-posting
+workflow.
 
 ## Dependencies
 
@@ -184,18 +201,22 @@ amazon-xhs-poster/
 │   ├── card-schema.md
 │   ├── voice-and-persona.md
 │   ├── customization.md
+│   ├── platforms.md            (per-platform limits + workflow)
 │   └── publish-adapter.md
 ├── prompts/
 │   ├── research-stage.md
 │   └── editorial-stage.md
 ├── scripts/
-│   ├── init-day.py             (Stage 0)
+│   ├── init-day.py             (Stage 0; platform-aware skeleton)
 │   ├── history.py              (called by init-day; safe to call alone)
-│   ├── validate.py             (Stage 3 gate; safe to call standalone)
-│   ├── render.mjs              (Stage 3)
-│   ├── make-post-md.py         (Stage 5)
-│   └── templates/              (reserved; v4 HTML is inlined in render.mjs)
+│   ├── validate.py             (Stage 3 gate; reads PLATFORM_PRESETS)
+│   ├── render.mjs              (Stage 3; skips when cards is empty)
+│   └── make-post-md.py         (Stage 5; per-platform output layout)
 └── examples/
-    ├── post.example.json       (canonical reference)
-    └── persona.example.json    (alternate persona to prove configurability)
+    ├── post.example.json            (xiaohongshu / ZH canonical)
+    ├── post-en.example.json         (xiaohongshu / EN)
+    ├── post-linkedin.example.json   (linkedin / EN)
+    ├── post-x.example.json          (x / EN thread)
+    ├── post-instagram.example.json  (instagram / EN)
+    └── persona.example.json         (alternate persona block)
 ```

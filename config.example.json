@@ -12,7 +12,11 @@
   },
 
   "output_language": "zh",
-  "_output_language_help": "zh = Chinese output (default, optimized for Xiaohongshu native audience). en = English output (for Lemon8 / Threads / Instagram-equivalent / English-speaking creator platforms). Switching to 'en' auto-defaults must_contain, cta_tokens, and decision_verbs to English equivalents — but you can still override any of those explicitly below.",
+  "_output_language_help": "zh = Chinese output (default, optimized for Xiaohongshu native audience). en = English output (for Lemon8 / LinkedIn / X / Instagram). Switching to 'en' auto-defaults must_contain, cta_tokens, and decision_verbs to English equivalents — but you can still override any of those explicitly below.",
+
+  "platform": "xiaohongshu",
+  "_platform_help": "Target platform — drives title length cap, body cap, hashtag count rules, card count range, and post.md output layout. Choices: 'xiaohongshu' (default; ZH carousel, 6-9 cards, ≤20 char title), 'lemon8' (EN carousel, 6-10 cards, ≤30 char title), 'linkedin' (text-only, 3000-char body, 3-5 hashtags), 'x' (single tweet OR thread via xhs.thread[], 280 char/post, 0-2 hashtags), 'instagram' (1-10 cards + caption, up to 2200 char caption, 5-30 hashtags). See references/platforms.md.",
+
 
   "title_constraints": {
     "max_chars": 20,

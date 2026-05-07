@@ -1,0 +1,166 @@
+{
+  "_comment": "Instagram carousel example. Set config.platform = 'instagram' and config.output_language = 'en'. 1-10 cards (this example uses 6); caption ≤ 2200 chars; 5-30 hashtags (5-10 optimal). post.md uses 'Caption' label instead of 'Body', and 'Carousel' instead of 'Cards'.",
+
+  "version": "1.1",
+  "job_date": "2026-05-07",
+  "language": "en",
+  "platform": "instagram",
+
+  "persona": {
+    "identity": "10-year Amazon operator running an 8-figure private label",
+    "brand_cn": "Vincent Reyes",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "operator-led, premium-restrained, scroll-stop visuals",
+    "signature": "Vincent Reyes"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "Amazon Frequently Returned badge tanks conversion 20-40% silently. Audit your return rates before Prime Day.",
+    "why_now": "Prime Day ~5 weeks out; post-promo return wave is now",
+    "selection_reason": "risk-warning: 14d count=2, floor=2",
+    "sources": [
+      "https://sellercentral.amazon.com/help/hub/reference/external/G202175570",
+      "https://www.aboutamazon.com/news/retail"
+    ]
+  },
+
+  "seo": {
+    "primary_keywords": ["Amazon return rate", "Frequently Returned", "Prime Day prep"],
+    "hashtags": [
+      "#Amazon", "#AmazonSeller", "#FBA", "#FBAReturns",
+      "#ReturnRate", "#PrimeDay", "#Conversion", "#Ecommerce", "#DTC", "#PrivateLabel"
+    ]
+  },
+
+  "strategy": {
+    "attention_goal": "Card 1 readable as a thumbnail in the IG grid; clear hook by card 2",
+    "psychology_hooks": ["loss-aversion", "curiosity-gap", "operator-authority", "credible-urgency"],
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "ratio": "3:4",
+    "width": 1080,
+    "height": 1440,
+    "cards": 6,
+    "cards_min": 1,
+    "cards_max": 10,
+    "renders_cards": true,
+    "accent_strategy": "color-psychology"
+  },
+
+  "xhs": {
+    "title": "Amazon's silent badge",
+    "title_max_length": 0,
+    "opening_hook": "Your Amazon listing might already wear an invisible badge that drops conversion 20-40% — and the platform won't notify you.",
+    "content": "Your Amazon listing might already wear an invisible badge that drops conversion 20-40% — and the platform won't notify you.\n\nIt's called Frequently Returned. Amazon attaches it to the product detail page when a SKU's return rate exceeds the category baseline. Every shopper sees it. Many close the tab.\n\nWhat triggers it (swipe through the carousel for the full breakdown):\n• Return rate above category average\n• Returns clustering around \"not as described\" or \"quality issues\"\n• Post-promo return spikes that push the rate over the line\n\nOnce on, removal takes weeks of below-average returns. Prime Day 2026 is roughly 5 weeks out. If a SKU is borderline, you don't have time to fix it AND prove the fix before Prime Day amplifies the problem.\n\nThree things to do this week:\n\n1. Pull the FBA returns report. For every SKU, log return rate and the top 3 return reasons.\n2. SKUs above category average → fix the detail page first (real photos, sizing chart, materials).\n3. Persistently broken SKUs → pause ads or remove before Prime Day amplifies them.\n\nSave this carousel for your next ops meeting. Follow for the 10% of Amazon news that actually moves PnL.\n\n#Amazon #AmazonSeller #FBA #FBAReturns #ReturnRate #PrimeDay #Conversion #Ecommerce #DTC #PrivateLabel",
+    "cta": "Save this carousel for your next ops meeting. Follow for the 10% of Amazon news that actually moves PnL.",
+    "tags": [
+      "Amazon", "AmazonSeller", "FBA", "FBAReturns",
+      "ReturnRate", "PrimeDay", "Conversion", "Ecommerce", "DTC", "PrivateLabel"
+    ],
+    "thread": [],
+    "append_hashtags_to_content": true,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [
+    {
+      "id": "card_01",
+      "kind": "hook",
+      "eyebrow": "2026.05  Risk Warning",
+      "headline": "Amazon may already\nhave flagged your listing",
+      "body": "Frequently Returned — Amazon's silent badge.\n\nIt sits on your product detail page where every shopper can see it.\n\nYou could have been wearing it for weeks without knowing.",
+      "bullets": [],
+      "footer": "Vincent Reyes"
+    },
+    {
+      "id": "card_02",
+      "kind": "tension",
+      "eyebrow": "How much it costs",
+      "headline": "Conversion drops 20-40%",
+      "body": "When buyers see 'Frequently Returned,' the next click isn't 'I'll try it' — it's the back button.\n\nWorse: Amazon never tells you you've been flagged.",
+      "bullets": [],
+      "footer": "Vincent Reyes"
+    },
+    {
+      "id": "card_03",
+      "kind": "framework",
+      "eyebrow": "Trigger logic",
+      "headline": "What gets a SKU flagged",
+      "body": "Amazon uses category-level return-rate baselines:",
+      "bullets": [
+        "Your SKU's return rate exceeds the category average",
+        "Returns cluster around 'not as described' or 'quality issues'",
+        "Post-promo periods amplify the rate fast",
+        "Once flagged, you need weeks to remove it"
+      ],
+      "footer": "Vincent Reyes"
+    },
+    {
+      "id": "card_04",
+      "kind": "checklist",
+      "eyebrow": "This week",
+      "headline": "3 steps to audit\nyour return risk",
+      "body": "",
+      "bullets": [
+        "Pull the FBA returns report; mark SKUs above category avg",
+        "High-return SKUs → fix detail page (photos, sizing, materials)",
+        "Broken SKUs → pause ads or remove before Prime Day"
+      ],
+      "footer": "Vincent Reyes"
+    },
+    {
+      "id": "card_05",
+      "kind": "ai-angle",
+      "eyebrow": "AI leverage",
+      "headline": "Use AI to monitor\nbefore the badge appears",
+      "body": "Manual reports are weekly. Return rates move daily.",
+      "bullets": [
+        "AI scans daily, alerts when a SKU approaches category threshold",
+        "Clusters return reasons, suggests detail-page edits — you decide which to keep or kill",
+        "Pre-promo: ranks risk SKUs so you pause the worst offenders first"
+      ],
+      "footer": "Vincent Reyes"
+    },
+    {
+      "id": "card_06",
+      "kind": "cta",
+      "eyebrow": "Vincent Reyes",
+      "headline": "Audit returns\nbefore Prime Day",
+      "body": "The badge doesn't ring an alarm.\nIt sits quietly on your listing, talking buyers out of clicking buy.\n\nPrime Day is ~5 weeks away.\nFix it now, while you still can.\n\n→ Save this carousel · Follow for the 10% of Amazon news that moves PnL.",
+      "bullets": [],
+      "footer": "Vincent Reyes"
+    }
+  ],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-07",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-07/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-07/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-07/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-07/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "done",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "IG-shaped: 6 cards (could expand to 10), caption 1100 chars, 10 hashtags",
+    "card 6 contains 'Save' and 'Follow' satisfying EN cta_tokens",
+    "card 5 contains decision verbs: 'keep', 'kill', 'decide', 'pause'"
+  ],
+
+  "job_type": "daily"
+}

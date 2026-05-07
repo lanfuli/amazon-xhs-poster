@@ -1,0 +1,93 @@
+{
+  "_comment": "X / Twitter thread example. Set config.platform = 'x' and config.output_language = 'en'. Each thread item ≤ 280 chars; max 25 posts; 0-2 hashtags total (placed inline in last tweet, not as a hashtag block); cards must be empty.",
+
+  "version": "1.1",
+  "job_date": "2026-05-07",
+  "language": "en",
+  "platform": "x",
+
+  "persona": {
+    "identity": "10-year Amazon operator running an 8-figure private label",
+    "brand_cn": "Vincent Reyes",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "punchy, contrarian, evidence per tweet, no fluff",
+    "signature": "Vincent Reyes"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "Amazon's Frequently Returned badge appears on detail pages and silently kills conversion 20-40%. Sellers usually find out weeks late. Prime Day prep is the right window to audit return rates and fix or pause risk SKUs.",
+    "why_now": "Prime Day 2026 is ~5 weeks out; spring promo just ended.",
+    "selection_reason": "risk-warning: 14d count=2, floor=2",
+    "sources": [
+      "https://sellercentral.amazon.com/help/hub/reference/external/G202175570"
+    ]
+  },
+
+  "seo": {
+    "primary_keywords": ["Amazon", "FBA", "Prime Day"],
+    "hashtags": ["#Amazon"]
+  },
+
+  "strategy": {
+    "attention_goal": "Hook tweet stops the scroll; evidence tweets earn the read",
+    "psychology_hooks": ["loss-aversion", "credible-urgency"],
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "cards": 0,
+    "cards_min": 0,
+    "cards_max": 0,
+    "renders_cards": false,
+    "accent_strategy": "n/a-for-text-only"
+  },
+
+  "xhs": {
+    "title": "",
+    "opening_hook": "Your top SKU might be wearing a label that drops conversion 20-40%. Amazon won't tell you.",
+    "content": "",
+    "thread": [
+      "Your top Amazon SKU might be wearing a silent label that drops conversion 20-40%. The platform won't notify you. Most sellers find out 3-4 weeks late, after they've already burned ad spend at half the conversion rate. 🧵",
+      "It's called Frequently Returned. Amazon attaches it to the product detail page itself when a SKU's return rate exceeds the category baseline. Every shopper sees it before clicking buy. Many close the tab.",
+      "Trigger conditions are mechanical: return rate above category avg, returns clustering around \"not as described,\" or post-promo spikes pushing the rate over the line. Spring promos and Prime Day are the two big landmines.",
+      "Once flagged, removal takes weeks of below-average returns. Prime Day 2026 is ~5 weeks out. If a SKU is borderline, you don't have time to fix it AND prove the fix worked before the event amplifies the problem.",
+      "What I'd do this week:\n1. Pull the FBA returns report\n2. Mark every SKU above category avg\n3. Fix the detail page (real photos, sizing, materials)\n4. For unfixable SKUs: pause ads or remove before Prime Day.",
+      "Operator move: stop spending behind broken SKUs *before* the platform decides for you. The badge isn't a punishment, it's lagging signal you've been ignoring.\n\n#Amazon"
+    ],
+    "tags": ["Amazon"],
+    "append_hashtags_to_content": false,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-07",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-07/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-07/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-07/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-07/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "skipped-no-cards",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "6-tweet thread; hook (1) + framework (2-3) + risk (4) + checklist (5) + close (6)",
+    "tweet 6 contains 'follow' implied via the close, plus the only hashtag (#Amazon)",
+    "all tweets verified ≤ 280 chars at editorial time"
+  ],
+
+  "job_type": "daily"
+}

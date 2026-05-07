@@ -1,0 +1,174 @@
+# Platforms
+
+> Set `config.platform` to pick the target. Each platform comes with its
+> own validator limits, render behavior, and `post.md` layout. Defaults
+> below are platform-natural; tighten via `config.title_constraints` /
+> `config.cta_tokens` etc. as needed.
+
+## Quick reference
+
+| Platform     | Title cap | Body cap | Hashtags  | Cards   | Format             |
+|--------------|-----------|----------|-----------|---------|--------------------|
+| xiaohongshu  | 20 chars  | (soft)   | 5–10 (≤12) | 6–9     | image carousel     |
+| lemon8       | 30 chars  | 2000     | 5–15 (≤30) | 6–10    | image carousel     |
+| linkedin     | (none)    | 3000     | 3–5 (≤50)  | 0       | long-form text     |
+| x            | (none)    | 280/post | 0–2 (≤30)  | 0       | post or thread     |
+| instagram    | (none)    | 2200     | 5–30 (≤30) | 1–10    | carousel + caption |
+
+The renderer paints PNGs only for platforms where `renders_cards = true`
+(xiaohongshu / lemon8 / instagram). Text-only platforms (linkedin / x)
+get an empty `render_manifest.json` and `make-post-md.py` produces a
+text-shaped `post.md`.
+
+---
+
+## xiaohongshu (default)
+
+The original target. Optimized for the Chinese Xiaohongshu audience: short
+title, image-first carousel, hashtag block in body for search reach.
+
+- Title: ≤ 20 chars, must contain a token from
+  `config.title_constraints.must_contain` (default `["亚马逊"]`)
+- Body: no enforced cap (XHS soft-limits around ~1000 chars; the editorial
+  pattern produces 600–900)
+- Hashtags: 5–10, each ≤ 12 chars, ≥ 60% must share token with topic
+- Cards: 6 default, 7–9 when topic warrants
+- Output: `post.md` lists card filenames; user uploads PNGs via XHS app
+
+---
+
+## lemon8
+
+TikTok's Xiaohongshu-equivalent for English-speaking markets. Same
+visual carousel format but more permissive:
+
+- Title: ≤ 30 chars (Lemon8 surfaces longer titles than XHS)
+- Body: ≤ 2000 chars
+- Hashtags: 5–15, each ≤ 30 chars (ASCII allowed)
+- Cards: 6–10
+- Output: same carousel structure as XHS; user uploads PNGs to Lemon8 app
+
+Pair with `output_language: "en"`.
+
+---
+
+## linkedin
+
+Long-form B2B post. Text-first; carousel ("document post" PDF) is out of
+scope for v1 — set `cards: []`.
+
+- No separate title; the first 1–2 lines of `xhs.content` serve as the hook
+  (LinkedIn truncates the feed preview around line 3)
+- Body: ≤ 3000 chars
+- Hashtags: 3–5, each ≤ 50 chars, placed at the END of the body
+- Cards: 0 (validator hard-fails if non-empty for linkedin)
+- Output: `post.md` is one continuous text block with hashtags appended
+
+**Editorial note**: LinkedIn rewards structured insight + a single sharp
+takeaway. Lead with a counter-intuitive 1-line hook, follow with 2–4
+short paragraphs of evidence, end with a CTA that asks for a specific
+reply ("what's your call here?" beats "what do you think?").
+
+---
+
+## x (twitter)
+
+Single tweet OR a numbered thread. Pick by populating `xhs.content`
+(single) or `xhs.thread` (array).
+
+- No title
+- Single tweet: `xhs.content` ≤ 280 chars
+- Thread: `xhs.thread` array, each item ≤ 280 chars, max 25 posts
+- Hashtags: 0–2 (more than 2 measurably reduces reach on X)
+- Cards: 0
+- Output: `post.md` shows the thread broken into numbered tweets with
+  per-tweet character counts, so you can paste each into X individually
+
+**Editorial note**: thread mode works best for sequential reasoning (1
+hook tweet + 4–6 evidence/example tweets + 1 CTA tweet). Single-tweet
+mode works best for a single sharp claim with one piece of evidence.
+
+**post.json shape for thread**:
+```json
+{
+  "platform": "x",
+  "xhs": {
+    "title": "",
+    "content": "",
+    "thread": [
+      "Hook tweet — counter-intuitive claim, end with hint that proof is below.",
+      "Evidence tweet 1 — specific number or example, no fluff.",
+      "Evidence tweet 2 — second angle.",
+      "CTA tweet — ask for a reply or follow."
+    ],
+    "tags": ["Amazon"],
+    "append_hashtags_to_content": false
+  },
+  "cards": []
+}
+```
+
+For thread mode, `append_hashtags_to_content` should be `false`; place
+hashtags inline in the last tweet if at all.
+
+---
+
+## instagram
+
+Carousel (1–10 images) + a caption. The most permissive image platform.
+
+- No separate title; the first ~125 chars of caption show in the feed
+  (Instagram truncates with "...more" beyond that)
+- Caption: ≤ 2200 chars
+- Hashtags: 5–30, each ≤ 30 chars. 5–10 is optimal for current reach
+  algorithms; 11–30 still works but skips the upper-tier feed boost
+- Cards: 1–10 (single image is valid; full carousel = 10)
+- Output: same as carousel layout, but `post.md` calls them "Carousel"
+  and the body section is labeled "Caption"
+
+**Editorial note**: Instagram audiences scroll faster than XHS. The first
+card must work as a thumbnail in the grid view (text large, contrast
+strong). Consider 6–8 cards rather than 10 — drop-off is steep after card 7.
+
+---
+
+## Switching platforms
+
+Three ways to set the platform, in priority order:
+
+1. CLI flag: `python3 scripts/make-post-md.py post.json --platform x`
+2. `post.json.platform` field (written by `init-day.py` from config)
+3. `config.platform`
+
+The validator and renderer always read from `post.json.platform`
+(written at init time). The CLI flag on `make-post-md.py` lets you
+re-format the same `post.json` for a different platform without
+re-rendering — useful when cross-posting.
+
+## Cross-posting workflow
+
+A common pattern: write the post for XHS first (full carousel), then
+adapt for LinkedIn (text-only) and X (thread).
+
+```bash
+# Day 1: XHS native
+python3 scripts/init-day.py --date 2026-05-07
+# (edit post.json for XHS, render, etc.)
+
+# Same content, LinkedIn-flavored
+python3 scripts/make-post-md.py drafts/2026-05-07/post.json --platform linkedin --output drafts/2026-05-07/post-linkedin.md
+
+# Same content, X thread (you'll need to populate xhs.thread first)
+python3 scripts/make-post-md.py drafts/2026-05-07/post.json --platform x --output drafts/2026-05-07/post-x.md
+```
+
+The validator won't complain about cross-platform `post.json` shapes as
+long as you re-validate against the target platform's config.
+
+## Adding a new platform
+
+The presets live in `scripts/validate.py` (`PLATFORM_PRESETS`),
+`scripts/init-day.py` (`PLATFORM_DEFAULTS`), and `scripts/make-post-md.py`
+(`PLATFORM_FORMAT` + `HEADERS_BY_LANG[*].h1_per_platform` and
+`footer_per_platform`). Add an entry to all three; the renderer picks up
+new platforms automatically as long as `renders_cards` is set correctly.

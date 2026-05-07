@@ -24,14 +24,92 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 ALLOWED_STYLES = {"iphone-notes-editorial-v4"}
-HASHTAG_MIN = 5
-HASHTAG_MAX = 10
-HASHTAG_MAX_LEN = 12
 
 RECENT_TITLE_WINDOW_DAYS = 7
 RECENT_CTA_WINDOW_DAYS = 3
 CTA_SIMILARITY_THRESHOLD = 0.7
 HASHTAG_RELEVANCE_MIN_RATIO = 0.6
+
+# Per-platform structural limits. Each preset captures the platform's
+# native constraints — title length, body cap, hashtag count + token length,
+# card count range, whether the renderer paints PNG cards, and whether the
+# platform supports thread-mode multi-post output. Validator reads the
+# preset matching `config.platform` (default "xiaohongshu").
+PLATFORM_PRESETS = {
+    "xiaohongshu": {
+        "title_max": 20,
+        "title_required": True,
+        "body_max": None,
+        "hashtag_min": 5,
+        "hashtag_max": 10,
+        "hashtag_token_max": 12,
+        "card_min": 6,
+        "card_max": 9,
+        "renders_cards": True,
+        "supports_thread": False,
+        "format": "carousel",
+        "description": "Xiaohongshu native (default for ZH). 20-char title cap, 6-9 image cards, 5-10 hashtags ≤12 chars each.",
+    },
+    "lemon8": {
+        "title_max": 30,
+        "title_required": True,
+        "body_max": 2000,
+        "hashtag_min": 5,
+        "hashtag_max": 15,
+        "hashtag_token_max": 30,
+        "card_min": 6,
+        "card_max": 10,
+        "renders_cards": True,
+        "supports_thread": False,
+        "format": "carousel",
+        "description": "Lemon8 (TikTok's XHS-equivalent). Roomier title and hashtags than XHS, similar carousel format.",
+    },
+    "linkedin": {
+        "title_max": 0,
+        "title_required": False,
+        "body_max": 3000,
+        "hashtag_min": 3,
+        "hashtag_max": 5,
+        "hashtag_token_max": 50,
+        "card_min": 0,
+        "card_max": 0,
+        "renders_cards": False,
+        "supports_thread": False,
+        "format": "long-form-text",
+        "description": "LinkedIn long-form text post. No carousel by default. 3000-char body, 3-5 hashtags, no separate title (first line acts as hook).",
+    },
+    "x": {
+        "title_max": 0,
+        "title_required": False,
+        "body_max": 280,
+        "hashtag_min": 0,
+        "hashtag_max": 2,
+        "hashtag_token_max": 30,
+        "card_min": 0,
+        "card_max": 0,
+        "renders_cards": False,
+        "supports_thread": True,
+        "thread_max_posts": 25,
+        "format": "post-or-thread",
+        "description": "X (Twitter) — single 280-char post or a thread of up to 25 posts via xhs.thread[]. Hashtags discouraged (0-2).",
+    },
+    "instagram": {
+        "title_max": 0,
+        "title_required": False,
+        "body_max": 2200,
+        "hashtag_min": 5,
+        "hashtag_max": 30,
+        "hashtag_token_max": 30,
+        "card_min": 1,
+        "card_max": 10,
+        "renders_cards": True,
+        "supports_thread": False,
+        "format": "carousel-with-caption",
+        "description": "Instagram carousel (1-10 cards) + caption (≤2200 chars). 5-30 hashtags allowed, but 5-10 is optimal for reach.",
+    },
+}
+
+DEFAULT_PLATFORM = "xiaohongshu"
 
 CTA_TOKENS_BY_LANG = {
     "zh": ["点赞", "收藏", "关注", "不迷路", "评论"],
@@ -287,6 +365,15 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         )
         language = "zh"
 
+    platform = (config.get("platform") or DEFAULT_PLATFORM).strip().lower()
+    if platform not in PLATFORM_PRESETS:
+        warnings.append(
+            f"unknown platform={platform!r}; falling back to {DEFAULT_PLATFORM!r}. "
+            f"supported: {sorted(PLATFORM_PRESETS.keys())}"
+        )
+        platform = DEFAULT_PLATFORM
+    preset = PLATFORM_PRESETS[platform]
+
     cta_tokens_cfg = config.get("cta_tokens")
     if cta_tokens_cfg is None:
         cta_tokens = list(CTA_TOKENS_BY_LANG[language])
@@ -318,7 +405,12 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             "and set your account brand string before validating"
         )
 
-    title_max = int(title_cfg.get("max_chars") or 20)
+    # Title length cap: prefer explicit config override; else use platform preset.
+    title_max_cfg = title_cfg.get("max_chars")
+    if title_max_cfg is not None:
+        title_max = int(title_max_cfg)
+    else:
+        title_max = int(preset["title_max"]) if preset["title_max"] else 0
     raw_must_contain = title_cfg.get("must_contain")
     if raw_must_contain is None:
         must_contain_list = list(DEFAULT_TITLE_KEYWORDS_BY_LANG[language])
@@ -341,16 +433,50 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
 
     title = str(xhs.get("title") or "").strip()
     content = str(xhs.get("content") or "").strip()
+    thread = xhs.get("thread") or []
     tags = normalized_tags(post)
 
-    if not title:
+    # Title checks — only enforced when the platform has a title concept.
+    if preset["title_required"] and not title:
         errors.append("xhs.title is empty")
-    if len(title) > title_max:
-        errors.append(f"xhs.title exceeds {title_max} characters: {len(title)}")
+    if title and title_max > 0 and len(title) > title_max:
+        errors.append(
+            f"xhs.title exceeds {title_max} characters (platform={platform!r}): {len(title)}"
+        )
     if must_contain_list and title and not any(kw in title for kw in must_contain_list):
         errors.append(
             f"xhs.title must include at least one of {must_contain_list} "
             f"(per config.title_constraints.must_contain)"
+        )
+
+    # Body cap (skipped if preset.body_max is None, e.g. xiaohongshu uses
+    # soft target rather than hard cap).
+    if preset["body_max"] is not None:
+        if len(content) > preset["body_max"]:
+            errors.append(
+                f"xhs.content exceeds {preset['body_max']} characters "
+                f"(platform={platform!r}): {len(content)}"
+            )
+
+    # Thread mode (X / Threads). Each post must respect body_max.
+    if preset.get("supports_thread") and thread:
+        thread_limit = preset.get("thread_max_posts")
+        per_post_limit = preset["body_max"]
+        if thread_limit and len(thread) > thread_limit:
+            errors.append(
+                f"xhs.thread has {len(thread)} posts but platform "
+                f"{platform!r} caps threads at {thread_limit}"
+            )
+        for i, item in enumerate(thread):
+            t = str(item or "").strip()
+            if per_post_limit and len(t) > per_post_limit:
+                errors.append(
+                    f"xhs.thread[{i}] exceeds {per_post_limit} characters: {len(t)}"
+                )
+    elif thread and not preset.get("supports_thread"):
+        warnings.append(
+            f"xhs.thread is set but platform {platform!r} does not support thread mode; "
+            f"thread will be ignored"
         )
 
     if expected_brand_cn and persona.get("brand_cn") != expected_brand_cn:
@@ -358,29 +484,64 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             f"persona.brand_cn must be {expected_brand_cn!r} "
             f"(matches config.persona.brand_cn)"
         )
-    if design.get("style") not in ALLOWED_STYLES:
+
+    # Design.style only applies to platforms that render cards.
+    if preset["renders_cards"] and design.get("style") not in ALLOWED_STYLES:
         errors.append(
             f"design.style must be one of {sorted(ALLOWED_STYLES)} "
             f"(older v1/v2/v3 layouts are deprecated)"
         )
 
-    if not (6 <= len(cards) <= 9):
-        errors.append(f"cards length must be 6-9, got {len(cards)}")
-    if "cards_min" in design and design.get("cards_min") != 6:
-        errors.append("design.cards_min must be 6")
-    if "cards_max" in design and design.get("cards_max") != 9:
-        errors.append("design.cards_max must be 9")
+    # Card count range from platform preset.
+    card_min = preset["card_min"]
+    card_max = preset["card_max"]
+    if card_max == 0:
+        # Text-only platform — cards must be empty.
+        if cards:
+            errors.append(
+                f"platform {platform!r} is text-only (no carousel); "
+                f"cards must be empty, got {len(cards)}"
+            )
+    else:
+        if not (card_min <= len(cards) <= card_max):
+            errors.append(
+                f"cards length must be {card_min}-{card_max} for platform "
+                f"{platform!r}, got {len(cards)}"
+            )
+        if "cards_min" in design and design.get("cards_min") != card_min:
+            warnings.append(
+                f"design.cards_min={design.get('cards_min')} but platform "
+                f"{platform!r} expects {card_min}"
+            )
+        if "cards_max" in design and design.get("cards_max") != card_max:
+            warnings.append(
+                f"design.cards_max={design.get('cards_max')} but platform "
+                f"{platform!r} expects {card_max}"
+            )
 
-    if xhs.get("append_hashtags_to_content", True) is not True:
-        errors.append("xhs.append_hashtags_to_content must be true")
+    # Hashtag-block-in-body requirement applies to platforms where in-body
+    # hashtags drive search reach (XHS, Lemon8, IG). Text-only platforms
+    # (LinkedIn, X) typically put hashtags inline, not in a trailing block.
+    requires_inbody_hashtags = preset["renders_cards"] or preset["format"] == "carousel"
+    if requires_inbody_hashtags and xhs.get("append_hashtags_to_content", True) is not True:
+        errors.append("xhs.append_hashtags_to_content must be true for this platform")
 
-    if len(tags) < HASHTAG_MIN:
-        errors.append(f"hashtag count must be >= {HASHTAG_MIN}, got {len(tags)}")
-    if len(tags) > HASHTAG_MAX:
-        errors.append(f"hashtag count must be <= {HASHTAG_MAX}, got {len(tags)}")
-    overlong = [t for t in tags if len(t) > HASHTAG_MAX_LEN]
+    hashtag_min = preset["hashtag_min"]
+    hashtag_max = preset["hashtag_max"]
+    hashtag_token_max = preset["hashtag_token_max"]
+    if len(tags) < hashtag_min:
+        errors.append(
+            f"hashtag count must be >= {hashtag_min} for {platform!r}, got {len(tags)}"
+        )
+    if len(tags) > hashtag_max:
+        errors.append(
+            f"hashtag count must be <= {hashtag_max} for {platform!r}, got {len(tags)}"
+        )
+    overlong = [t for t in tags if len(t) > hashtag_token_max]
     if overlong:
-        errors.append(f"hashtags exceeding {HASHTAG_MAX_LEN} chars: {overlong}")
+        errors.append(
+            f"hashtags exceeding {hashtag_token_max} chars for {platform!r}: {overlong}"
+        )
     if tags and must_contain_list and not any(
         any(kw in t for kw in must_contain_list) for t in tags
     ):
@@ -459,7 +620,10 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
                     )
                     break
 
-    if len(tags) >= HASHTAG_MIN:
+    # Hashtag relevance check only applies when the platform actually
+    # uses hashtags meaningfully (i.e. requires a non-zero minimum). Skip
+    # for X / single-tweet platforms where hashtags are decorative.
+    if hashtag_min > 0 and len(tags) >= hashtag_min:
         ratio = hashtag_relevance_ratio(tags, post)
         if ratio < HASHTAG_RELEVANCE_MIN_RATIO:
             errors.append(
@@ -509,10 +673,13 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         "title": title,
         "title_length": len(title),
         "cards": len(cards),
+        "thread_posts": len(thread) if isinstance(thread, list) else 0,
+        "body_length": len(content),
         "style": design.get("style"),
         "tags": tags,
         "category": current_category,
         "language": language,
+        "platform": platform,
         "history_rows": len(history_rows),
         "cold_start": recent_history is None,
     }

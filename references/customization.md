@@ -23,7 +23,38 @@ Validator will refuse to run while `brand_cn` still says `REPLACE_ME`. The
 persona must match what's in `post.json.persona.brand_cn` exactly, so
 `init-day.py` writes it for you on each new day.
 
-## 2. Output language
+## 2. Target platform
+
+The biggest UX lever after persona. Set `config.platform`:
+
+```json
+"platform": "xiaohongshu"   // or lemon8 / linkedin / x / instagram
+```
+
+This drives **everything** about how the post is shaped: title length,
+body cap, hashtag count + length, card count range, and post.md output
+layout.
+
+Quick reference:
+
+| Platform     | Cards | Title cap | Body cap | Hashtags  | Best for |
+|--------------|-------|-----------|----------|-----------|----------|
+| xiaohongshu  | 6–9   | 20 chars  | (soft)   | 5–10 (≤12)| ZH carousel; the original target |
+| lemon8       | 6–10  | 30 chars  | 2000     | 5–15 (≤30)| EN carousel; XHS's Western cousin |
+| linkedin     | 0     | (none)    | 3000     | 3–5 (≤50) | B2B long-form text |
+| x            | 0     | (none)    | 280/post | 0–2       | Single tweet or thread |
+| instagram    | 1–10  | (none)    | 2200     | 5–30 (≤30)| Lifestyle / visual-first |
+
+Full per-platform rules, character-count gotchas, and cross-posting
+workflows live in [`platforms.md`](platforms.md). Each platform has its
+own example post in `examples/`:
+- `post.example.json` (xiaohongshu / ZH)
+- `post-en.example.json` (xiaohongshu / EN, but works as Lemon8 starter)
+- `post-linkedin.example.json` (LinkedIn text-only)
+- `post-x.example.json` (X thread)
+- `post-instagram.example.json` (Instagram carousel)
+
+## 3. Output language
 
 The skill ships with two language tracks: **ZH** (default, optimized for
 Xiaohongshu native audience) and **EN** (for Lemon8 / Threads /
@@ -66,7 +97,7 @@ potentially-Chinese chip labels in the renderer are the theme labels
 when you set `card.eyebrow` explicitly. In practice, EN-mode posts always
 set `eyebrow` per card, so the chip text is never auto-generated Chinese.
 
-## 3. Title constraints (manual override)
+## 4. Title constraints (manual override)
 
 ```json
 "title_constraints": {
@@ -96,7 +127,7 @@ You'll also want to:
 - The patterns examples in `references/title-and-cta-patterns.md` use
   亚马逊/Amazon — adapt mentally or fork the doc.
 
-## 4. Forbidden brands and source tokens (privacy)
+## 5. Forbidden brands and source tokens (privacy)
 
 These are **merge** lists, not **replace** lists. The defaults are a starter
 set the skill ships with — your own additions stack on top.
@@ -160,7 +191,7 @@ If you're unsure whether a token is "specific enough", grep your last
 month of drafts for it — if it appears anywhere in legitimate copy, it's
 too broad.
 
-## 5. Angle quotas
+## 6. Angle quotas
 
 To rebalance which categories get how much airtime:
 
@@ -182,7 +213,7 @@ To rebalance which categories get how much airtime:
 The sum of floors should be ≤ 14; the sum of ceilings should be > 14
 (otherwise some days have no allowed category).
 
-## 6. Paths
+## 7. Paths
 
 ```json
 "paths": {
@@ -199,7 +230,7 @@ The sum of floors should be ≤ 14; the sum of ceilings should be > 14
 - `history_lookback_days`: validator dedup window. 30 is the default; 14 is
   reasonable if you post more than once a day.
 
-## 7. Adding industry-specific keywords
+## 8. Adding industry-specific keywords
 
 The history builder counts how often certain keywords appear in titles +
 angles, so you can see saturation. Default keywords are Amazon-seller
@@ -216,7 +247,7 @@ specific (PPC, COSMO, FBA, Brand Registry, etc.). Add your own:
 These get merged with the defaults, not replacing them. They show up in
 `research/recent_history.md` as an extra audit signal.
 
-## 8. Where the config lives
+## 9. Where the config lives
 
 Resolution order (every script in this skill):
 
@@ -234,14 +265,21 @@ XHS_AMAZON_CONFIG=/tmp/walmart-config.json \
 For production: drop a working config at the default path and forget about
 it.
 
-## 9. Things you genuinely should not change
+## 10. Things you genuinely should not change
 
 - `design.style` validator allowlist. Only `iphone-notes-editorial-v4`
-  matches the renderer's CSS contract.
-- The 6–9 card count window. Less than 6 is too thin to be a memo; more
-  than 9 won't fit in XHS's carousel without aggressive editing.
-- The `append_hashtags_to_content: true` requirement. XHS search picks up
-  the in-body hashtags much more reliably than the dedicated tag field.
+  matches the renderer's CSS contract. (Only applies to platforms that
+  render cards.)
+- The card count range for each platform — these mirror the platform's
+  actual carousel limit (XHS 6–9, Lemon8 6–10, IG 1–10). Going outside
+  the platform's range will produce uploads that fail or look wrong.
+- `append_hashtags_to_content: true` for carousel platforms — search
+  reach on XHS / Lemon8 / IG depends on in-body hashtags, not just the
+  tag field. (Validator skips this requirement for LinkedIn and X where
+  it doesn't apply.)
 
 If you find yourself wanting to change these, it's worth pausing and asking
-why — they're shaped by platform constraints, not author preference.
+why — they're shaped by platform constraints, not author preference. If
+you genuinely need different platform limits, consider adding a new
+preset (see `platforms.md` "Adding a new platform") rather than bending
+an existing one.

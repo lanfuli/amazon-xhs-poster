@@ -127,6 +127,18 @@ def main():
     if language not in ("zh", "en"):
         language = "zh"
 
+    platform = (config.get("platform") or "xiaohongshu").strip().lower()
+    PLATFORM_DEFAULTS = {
+        "xiaohongshu": {"title_max": 20, "card_min": 6, "card_max": 9, "renders_cards": True},
+        "lemon8":      {"title_max": 30, "card_min": 6, "card_max": 10, "renders_cards": True},
+        "linkedin":    {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
+        "x":           {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
+        "instagram":   {"title_max": 0,  "card_min": 1, "card_max": 10, "renders_cards": True},
+    }
+    if platform not in PLATFORM_DEFAULTS:
+        platform = "xiaohongshu"
+    p_defaults = PLATFORM_DEFAULTS[platform]
+
     attention_goal_default = {
         "zh": "3秒内停留并产生关注/收藏意图",
         "en": "Stop the scroll in 3 seconds, earn a follow or save",
@@ -138,6 +150,7 @@ def main():
             "version": "1.1",
             "job_date": date,
             "language": language,
+            "platform": platform,
             "persona": {
                 "identity": persona_cfg.get("identity", ""),
                 "brand_cn": persona_cfg.get("brand_cn", ""),
@@ -170,18 +183,24 @@ def main():
                 "ratio": "3:4",
                 "width": 1080,
                 "height": 1440,
-                "cards": 6,
-                "cards_min": 6,
-                "cards_max": 9,
-                "accent_strategy": "color-psychology"
+                "cards": p_defaults["card_min"],
+                "cards_min": p_defaults["card_min"],
+                "cards_max": p_defaults["card_max"],
+                "accent_strategy": "color-psychology",
+                "renders_cards": p_defaults["renders_cards"]
             },
             "xhs": {
                 "title": "",
-                "title_max_length": int((config.get("title_constraints") or {}).get("max_chars") or 20),
+                "title_max_length": int(
+                    (config.get("title_constraints") or {}).get("max_chars")
+                    or p_defaults["title_max"]
+                    or 0
+                ),
                 "opening_hook": "",
                 "content": "",
                 "cta": "",
                 "tags": [],
+                "thread": [],
                 "append_hashtags_to_content": True,
                 "schedule_at": "",
                 "delivery_mode": "manual"

@@ -446,12 +446,32 @@ const themeKey = root.design?.theme && root.design.theme !== 'auto'
   : root.topic?.category;
 const theme = themes[themeKey] || themes.default;
 const cards = (root.cards || []).map(normalizeCard);
+
+// Text-only platforms (LinkedIn, X, Threads) ship with cards = []. Validator
+// has already accepted that configuration; here we just write an empty
+// manifest and exit cleanly so downstream make-post-md.py can run.
 if (cards.length === 0) {
-  console.error('post.json contains no cards');
-  process.exit(1);
+  const emptyManifest = {
+    theme: themeKey || 'default',
+    renderedAt: new Date().toISOString(),
+    cards: [],
+    note: 'no cards to render (text-only platform)'
+  };
+  await fs.writeFile(renderManifestPath, JSON.stringify(emptyManifest, null, 2));
+  if (desktopMetaDir) {
+    await fs.copyFile(renderManifestPath, path.join(desktopMetaDir, 'render_manifest.json'));
+  }
+  root.status = root.status || {};
+  root.status.render = 'skipped-no-cards';
+  await fs.writeFile(postJsonPath, JSON.stringify(root, null, 2) + '\n');
+  console.log(JSON.stringify(emptyManifest, null, 2));
+  process.exit(0);
 }
-if (cards.length < 6 || cards.length > 9) {
-  console.error(`Amazon XHS cards must be 6-9 pages. Current card count: ${cards.length}`);
+
+// Render any non-empty card array. Platform-specific bounds (e.g. IG 1-10,
+// XHS 6-9, Lemon8 6-10) are enforced by validate.py before this point.
+if (cards.length > 10) {
+  console.error(`Card count ${cards.length} exceeds the renderer's hard cap of 10. Trim post.json.cards.`);
   process.exit(1);
 }
 
