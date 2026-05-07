@@ -1,0 +1,40 @@
+# Local config — never commit a filled-in config (it contains your persona,
+# brand, and possibly internal source/brand block lists)
+config.json
+*.local.json
+
+# Drafts output — these are per-day artifacts, not source
+drafts/
+xhs-amazon-drafts/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Rendered card outputs (in case the user puts a draft inside the repo)
+**/cards/card_*.png
+**/cards/card_*.jpg
+**/cards/card_*.html
+**/cards/render_manifest.json
+**/post.md
+**/research/recent_history.json
+**/research/recent_history.md

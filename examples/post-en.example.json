@@ -1,0 +1,169 @@
+{
+  "_comment": "English-output sample. Set config.output_language to 'en' before running with this. Same 6-card structure, same risk-warning theme, but every text field is in English and the title contains 'Amazon' (the EN-default must_contain).",
+
+  "version": "1.1",
+  "job_date": "2026-05-06",
+  "language": "en",
+
+  "persona": {
+    "identity": "10-year Amazon operator based in Seattle",
+    "brand_cn": "Vincent in Seattle",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "practical, restrained, direct, opinionated",
+    "signature": "Vincent in Seattle"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "Amazon flags high-return-rate listings with a 'Frequently Returned' badge that appears on the product detail page itself. Conversion drops 20-40% the moment buyers see it. Most sellers don't actively monitor return-rate thresholds and only notice the badge weeks after their conversion has already collapsed. Prime Day prep is exactly when return rates spike — sellers must audit returns before the event, fix listings to align expectations, and proactively pause high-risk SKUs.",
+    "why_now": "Prime Day 2026 is roughly 5 weeks out. Spring promo just ended and the post-promo return wave may have already pushed several SKUs over their category thresholds. This is the last fix window before the event amplifies the problem.",
+    "selection_reason": "risk-warning: 14d count=2, floor=2, gap=0; last risk-warning was 6 days ago",
+    "risk_policy": "Treat black-hat only as risk-warning and case-analysis content. Never produce step-by-step abusive SOPs.",
+    "sources": [
+      "https://sellercentral.amazon.com/help/hub/reference/external/G202175570",
+      "https://www.aboutamazon.com/news/retail",
+      "https://advertising.amazon.com/library"
+    ]
+  },
+
+  "seo": {
+    "primary_keywords": ["Amazon return rate", "Frequently Returned", "Amazon badge", "Amazon conversion"],
+    "secondary_keywords": ["return monitoring", "Amazon ops", "Prime Day prep", "FBA returns"],
+    "hashtags": [
+      "#Amazon", "#AmazonSeller", "#FBA", "#FBAReturns",
+      "#ReturnRate", "#PrimeDay", "#Conversion", "#Ecommerce", "#DTC"
+    ]
+  },
+
+  "strategy": {
+    "attention_goal": "Stop the scroll in 3 seconds, earn a follow or save",
+    "psychology_hooks": ["loss-aversion", "curiosity-gap", "identity-mirroring", "operator-authority", "credible-urgency"],
+    "ai_positioning": "Frame the seller's AI workflow generically; don't name internal tooling or paint the persona as an AI product.",
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "ratio": "3:4",
+    "width": 1080,
+    "height": 1440,
+    "cards": 6,
+    "cards_min": 6,
+    "cards_max": 9,
+    "accent_strategy": "color-psychology"
+  },
+
+  "xhs": {
+    "title": "Amazon's silent badge",
+    "title_pattern_id": "T1",
+    "title_max_length": 20,
+    "opening_hook": "Your Amazon listing might already have an invisible badge that's quietly killing your conversion.",
+    "content": "Your Amazon listing might already have an invisible badge that's quietly killing your conversion.\n\nIt's called Frequently Returned. Amazon attaches it to high-return-rate products and shows it directly on the product detail page — every shopper sees it.\n\nOnce it's on, conversion drops 20-40%.\n\nThe worst part: Amazon does not notify you. If you don't actively check, you might be wearing the badge for weeks while you keep paying for ad clicks.\n\nTrigger conditions are simple:\n\n* Your SKU's return rate is above the category average\n* Returns concentrate around \"not as described\" or \"quality issues\"\n* Post-promo return spikes push the rate over the line fast\n\nPrime Day 2026 is roughly 5 weeks out. This is the last clean fix window.\n\nThree things to do tonight:\n\n1. Pull the FBA returns report. For every SKU, look at return rate and the top 3 return reasons.\n2. For SKUs above the category average, fix the detail page first — real photos, sizing chart, materials, expectations. Help the buyer know what they're going to get.\n3. For SKUs that are persistently broken and can't be fixed in time, pause ads or remove them before Prime Day. Don't let the event scale your problem.\n\nThis isn't a 'next quarter' problem. Once the badge sticks, you need weeks of below-average returns to remove it. Prime Day won't wait.\n\nFollow Vincent in Seattle for the 10% of Amazon news that actually moves PnL.\n\n#Amazon #AmazonSeller #FBA #FBAReturns #ReturnRate #PrimeDay #Conversion #Ecommerce #DTC",
+    "cta": "Follow Vincent in Seattle for the 10% of Amazon news that actually moves PnL.",
+    "tags": [
+      "Amazon", "AmazonSeller", "FBA", "FBAReturns",
+      "ReturnRate", "PrimeDay", "Conversion", "Ecommerce", "DTC"
+    ],
+    "append_hashtags_to_content": true,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [
+    {
+      "id": "card_01",
+      "kind": "hook",
+      "eyebrow": "2026.05  Risk Warning",
+      "headline": "Amazon may already\nhave flagged your listing",
+      "body": "Frequently Returned — Amazon's silent badge.\n\nIt sits on your product detail page where every shopper can see it.\n\nYou could have been wearing it for weeks without knowing.",
+      "bullets": [],
+      "footer": "Vincent in Seattle"
+    },
+    {
+      "id": "card_02",
+      "kind": "tension",
+      "eyebrow": "How much it costs",
+      "headline": "Conversion drops 20-40%",
+      "body": "When buyers see 'Frequently Returned,' the next click isn't 'I'll try it' — it's the back button.\n\nWorse: Amazon never tells you you've been flagged.\n\nYour ad spend keeps burning while the page silently bleeds out.",
+      "bullets": [],
+      "footer": "Vincent in Seattle"
+    },
+    {
+      "id": "card_03",
+      "kind": "framework",
+      "eyebrow": "Trigger logic",
+      "headline": "What gets a SKU flagged",
+      "body": "Amazon uses category-level return-rate baselines:",
+      "bullets": [
+        "Your SKU's return rate exceeds the category average",
+        "Returns cluster around 'not as described' or 'quality issues'",
+        "Promo periods amplify imprecise traffic and push the rate up fast",
+        "Once flagged, you need weeks of below-average returns to remove it"
+      ],
+      "footer": "Vincent in Seattle"
+    },
+    {
+      "id": "card_04",
+      "kind": "checklist",
+      "eyebrow": "Tonight",
+      "headline": "3 steps to audit your\nreturn risk",
+      "body": "",
+      "bullets": [
+        "Pull the FBA returns report → for every SKU, log return rate and top 3 reasons. Mark anything above the category average.",
+        "High-return SKUs → fix the detail page first: real photos, sizing chart, materials, expectations.",
+        "Broken SKUs that can't be fixed in time → pause ads or remove them before Prime Day amplifies the problem."
+      ],
+      "footer": "Vincent in Seattle"
+    },
+    {
+      "id": "card_05",
+      "kind": "ai-angle",
+      "eyebrow": "AI leverage",
+      "headline": "Use AI to monitor returns\nbefore the badge appears",
+      "body": "Pulling reports weekly is exhausting, but return rates move daily.",
+      "bullets": [
+        "An AI agent scans returns daily; alerts when a SKU approaches the category threshold so you decide when to act.",
+        "It clusters return reasons by frequency and proposes detail-page edits — you decide which ones to keep or kill.",
+        "Before promo, it flags risk SKUs ranked by return rate so you can pause the worst offenders first."
+      ],
+      "footer": "Vincent in Seattle"
+    },
+    {
+      "id": "card_06",
+      "kind": "cta",
+      "eyebrow": "Vincent in Seattle",
+      "headline": "Audit returns\nbefore Prime Day",
+      "body": "The badge doesn't ring an alarm.\nIt sits quietly on your listing, talking buyers out of clicking buy.\n\nPrime Day is roughly 5 weeks away.\nFix it now, while you still can.\n\n→ Follow Vincent in Seattle for the 10% of Amazon news that actually moves PnL.",
+      "bullets": [],
+      "footer": "Vincent in Seattle"
+    }
+  ],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-06",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-06/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-06/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-06/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-06/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "done",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "T1 verb-object pattern, not used in last 7 days",
+    "CTA1 follow type, not used on card 6 in last 3 days",
+    "card 6 'Follow' satisfies EN cta_tokens",
+    "card 5 contains decision verbs: 'decide', 'keep', 'kill', 'pause'"
+  ],
+
+  "job_type": "daily"
+}

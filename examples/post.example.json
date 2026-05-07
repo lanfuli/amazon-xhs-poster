@@ -1,0 +1,167 @@
+{
+  "_comment": "A canonical, validator-passing post.json example. Persona and dates are illustrative — replace persona block with your config.persona on real runs (init-day.py does this automatically). The topic / cards / hashtags / CTAs are real-world shaped: 6 cards, theme=risk-warning, CTA1 follow-pattern, hashtags tiered.",
+
+  "version": "1.1",
+  "job_date": "2026-05-06",
+  "language": "zh",
+
+  "persona": {
+    "identity": "西雅图 10 年亚马逊运营",
+    "brand_cn": "可乐讲卖货",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "实战、克制、直接",
+    "signature": "可乐讲卖货"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "亚马逊在高退货率产品上打 Frequently Returned 标签，直接展示在 Listing 页面，转化率断崖式下跌。多数卖家不主动监控退货率阈值，等看到标签时已经损失数周转化。Prime Day 备战期正是退货率容易波动的窗口——卖家必须在大促前检查退货率、优化预期管理、必要时主动下架高风险 SKU。",
+    "why_now": "Prime Day 2026 预计 6 月举办，距今约 5 周。春促后退货高峰刚过，部分 SKU 退货率可能已触发标签阈值。",
+    "selection_reason": "risk-warning: 14d count=2, floor=2, gap=0; 距上次 risk-warning 6 天",
+    "risk_policy": "Treat black-hat only as risk-warning and case-analysis content. Never produce step-by-step abusive SOPs.",
+    "sources": [
+      "https://sellercentral.amazon.com/help/hub/reference/external/G202175570",
+      "https://www.aboutamazon.com/news/retail",
+      "https://advertising.amazon.com/library"
+    ]
+  },
+
+  "seo": {
+    "primary_keywords": ["亚马逊退货率", "Frequently Returned", "亚马逊标签", "亚马逊转化率"],
+    "secondary_keywords": ["退货率监控", "亚马逊运营", "Prime Day备战", "亚马逊卖家", "跨境电商"],
+    "hashtags": [
+      "#亚马逊运营", "#亚马逊卖家", "#跨境电商", "#亚马逊退货",
+      "#Listing优化", "#转化率优化", "#PrimeDay备战", "#亚马逊美国站", "#亚马逊风控"
+    ]
+  },
+
+  "strategy": {
+    "attention_goal": "3秒内停留并产生关注/收藏意图",
+    "psychology_hooks": ["loss-aversion", "curiosity-gap", "identity-mirroring", "operator-authority", "credible-urgency"],
+    "ai_positioning": "When AI is relevant, frame the seller's own AI workflow generically; do not name internal tooling.",
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "ratio": "3:4",
+    "width": 1080,
+    "height": 1440,
+    "cards": 6,
+    "cards_min": 6,
+    "cards_max": 9,
+    "accent_strategy": "color-psychology"
+  },
+
+  "xhs": {
+    "title": "亚马逊这标签杀转化",
+    "title_pattern_id": "T1",
+    "title_max_length": 20,
+    "opening_hook": "你的 Listing 上可能已经被亚马逊打了一个你不知道的标签——买家一看就关页面。",
+    "content": "你的 Listing 上可能已经被亚马逊打了一个你不知道的标签——买家一看就关页面。\n\n这个标签叫 Frequently Returned，翻译过来就是\"经常被退货\"。亚马逊直接把它展示在你的产品详情页上，所有买家都能看到。\n\n一旦被标记，转化率直接掉 20%-40%。\n\n最狠的是：亚马逊不会通知你。你不主动去查，可能已经被标了好几周都不知道。\n\n触发条件并不复杂：\n\n✦ 品类退货率高于同品类平均值\n✦ 退货原因集中在\"与描述不符\"或\"质量问题\"\n✦ 春促/大促后退货高峰特别容易触发\n\n现在距离 Prime Day 还有大约 5 周，这是最后的修复窗口。\n\n今晚就该做的 3 件事：\n\n1. 后台拉退货报告，逐 SKU 看退货率和退货原因 Top 3\n2. 退货率超过品类均值的 SKU，优先修详情页——图片、尺寸表、材质说明\n3. 退货率极高且无法改善的 SKU，考虑 Prime Day 前主动暂停\n\n这不是\"以后再说\"的事。标签一旦上了，要持续多周低退货率才能摘掉。\n\n点左上角 + 关注，可乐讲卖货，提前看到美国站运营里正在伤害你的隐性风险。\n\n#亚马逊运营 #亚马逊卖家 #跨境电商 #亚马逊退货 #Listing优化 #转化率优化 #PrimeDay备战 #亚马逊美国站 #亚马逊风控",
+    "cta": "点左上角 + 关注，可乐讲卖货，提前看到正在伤害你的隐性风险。",
+    "tags": [
+      "亚马逊运营", "亚马逊卖家", "跨境电商", "亚马逊退货",
+      "Listing优化", "转化率优化", "PrimeDay备战", "亚马逊美国站", "亚马逊风控"
+    ],
+    "append_hashtags_to_content": true,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [
+    {
+      "id": "card_01",
+      "kind": "hook",
+      "eyebrow": "2026.05  风险预警",
+      "headline": "你的 Listing 被亚马逊\n打了一个隐形标签",
+      "body": "Frequently Returned——\"经常被退货\"。\n\n亚马逊把它直接展示在你的产品详情页上，所有买家都能看到。\n\n你可能被标了好几周，自己完全不知道。",
+      "bullets": [],
+      "footer": "可乐讲卖货"
+    },
+    {
+      "id": "card_02",
+      "kind": "tension",
+      "eyebrow": "这个标签有多疼",
+      "headline": "转化率直接掉 20%-40%",
+      "body": "买家看到\"经常被退货\"五个字，第一反应不是\"我来试试\"，而是直接关页面去下一个。\n\n更狠的是：\n亚马逊不会通知你被标了。\n你不主动查，广告费可能已经白烧了好几周。",
+      "bullets": [],
+      "footer": "可乐讲卖货"
+    },
+    {
+      "id": "card_03",
+      "kind": "framework",
+      "eyebrow": "触发逻辑",
+      "headline": "什么情况会被标",
+      "body": "亚马逊用品类级别的退货率基准线来判断：",
+      "bullets": [
+        "你的 SKU 退货率 > 同品类平均退货率",
+        "退货原因集中在\"与描述不符\"或\"质量问题\"",
+        "大促期间非精准流量涌入，退货率被快速拉高",
+        "标签一旦触发，需要持续多周低退货率才能移除"
+      ],
+      "footer": "可乐讲卖货"
+    },
+    {
+      "id": "card_04",
+      "kind": "checklist",
+      "eyebrow": "今晚就做",
+      "headline": "3 步检查你的退货风险",
+      "body": "",
+      "bullets": [
+        "后台拉 FBA 退货报告 → 逐 SKU 看退货率 + 退货原因 Top 3，标红超过品类均值的产品",
+        "退货率偏高的 SKU → 优先修详情页：主图实拍、尺寸对照表、材质/功能说明",
+        "退货率极高且短期无法改善的 SKU → Prime Day 前考虑主动暂停广告或下架"
+      ],
+      "footer": "可乐讲卖货"
+    },
+    {
+      "id": "card_05",
+      "kind": "ai-angle",
+      "eyebrow": "AI 提效",
+      "headline": "用 AI 监控退货率\n别等标签上了才发现",
+      "body": "手动拉退货报告每周一次都嫌累，但退货率变化是逐日发生的。",
+      "bullets": [
+        "AI agent 每日自动抓退货数据，退货率接近品类阈值时立即预警",
+        "自动归类退货原因，识别高频关键词，生成详情页修改建议",
+        "大促前自动标记风险 SKU 名单，按退货率排序，决定先暂停哪些 SKU"
+      ],
+      "footer": "可乐讲卖货"
+    },
+    {
+      "id": "card_06",
+      "kind": "cta",
+      "eyebrow": "可乐讲卖货",
+      "headline": "Prime Day 前\n先检查你的退货率",
+      "body": "这个标签不会发通知，不会弹警告。\n它就安静地挂在你的 Listing 上，每天帮你劝退买家。\n\n距离 Prime Day 还有大约 5 周。\n现在修，还来得及。\n\n👉 点左上角 + 关注\n可乐讲卖货，提前看到正在伤害你的隐性风险。",
+      "bullets": [],
+      "footer": "可乐讲卖货"
+    }
+  ],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-06",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-06/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-06/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-06/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-06/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "done",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "T1 标题模式 (verb + object)，过去 7 天未使用",
+    "CTA1 关注型，过去 3 天 card 6 未使用"
+  ],
+
+  "job_type": "daily"
+}

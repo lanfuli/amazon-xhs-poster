@@ -1,0 +1,12 @@
+{
+  "_comment": "An alternate persona to demonstrate that brand_cn / identity / voice are all configurable. This is NOT the original author — it's a hypothetical Walmart-Marketplace-leaning persona to make the parameterization concrete. Drop this block into your config.json as the `persona` value (or copy the whole config.example.json and edit).",
+
+  "persona": {
+    "brand_cn": "可乐讲卖货",
+    "identity": "纽约 6 年跨境运营，亚马逊+沃尔玛双站",
+    "voice": "实战、不绕弯、讲数据，偏冷幽默",
+    "signature": "可乐讲卖货",
+    "location": "New York, NY",
+    "years_experience": 6
+  }
+}

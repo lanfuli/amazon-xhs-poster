@@ -1,0 +1,232 @@
+# Customizing the skill for your account
+
+The skill ships with defaults aimed at Amazon-seller XHS content in
+Mandarin. Almost everything is configurable through one `config.json`. This
+doc walks through the realistic customizations.
+
+## 1. Setting your persona
+
+Open your `config.json` and edit the `persona` block:
+
+```json
+"persona": {
+  "brand_cn": "你的小红书账号品牌串",
+  "identity": "一行人设描述（行业 + 经验 + 视角）",
+  "voice": "3-5 个文风关键词，逗号分隔",
+  "signature": "卡片底部签名，通常等于 brand_cn",
+  "location": "City, ST",
+  "years_experience": 8
+}
+```
+
+Validator will refuse to run while `brand_cn` still says `REPLACE_ME`. The
+persona must match what's in `post.json.persona.brand_cn` exactly, so
+`init-day.py` writes it for you on each new day.
+
+## 2. Output language
+
+The skill ships with two language tracks: **ZH** (default, optimized for
+Xiaohongshu native audience) and **EN** (for Lemon8 / Threads /
+Instagram-equivalent / English-speaking creator platforms).
+
+```json
+"output_language": "zh"   // or "en"
+```
+
+Setting `output_language` to `"en"` auto-selects English defaults for:
+- `must_contain` → `["Amazon"]` (used for title and hashtag enforcement)
+- `cta_tokens` → `["like", "save", "follow", "comment", "share", "subscribe"]`
+- `decision_verbs` → `["decide", "switch", "pause", "stop", "increase budget", "remove", "select", "transfer", "rebuild", "cut", "promote", "keep", "kill"]`
+- `post.md` headers → English (`# Amazon Seller Note — DATE`, `## Title`, `## Body`, etc.)
+- `init-day.py` `strategy.attention_goal` → English variant
+
+**You can still override any of these explicitly.** Set the field to a
+list and the skill uses your list. Set it to `null` (or omit) and you get
+the language-default.
+
+### Mixed-language workflows
+
+If you want a Chinese title with English body (e.g. cross-posting to a
+Chinese platform but with bilingual content), set `output_language: "zh"`
+and write the body in English by hand. The validator only enforces
+`must_contain` on the title, and the `cta_tokens` check is on the last
+card. Both can be overridden.
+
+### Renderer note
+
+Card layout (`iphone-notes-editorial-v4`) uses a font stack that handles
+both Chinese (PingFang SC) and Latin scripts (SF Pro Display, Helvetica
+Neue). English content renders correctly without changes; the only
+potentially-Chinese chip labels in the renderer are the theme labels
+(`全球新闻`, `白帽运营`, etc.) which appear by default but are overridden
+when you set `card.eyebrow` explicitly. In practice, EN-mode posts always
+set `eyebrow` per card, so the chip text is never auto-generated Chinese.
+
+## 3. Title constraints (manual override)
+
+```json
+"title_constraints": {
+  "max_chars": 20,
+  "must_contain": ["亚马逊"]
+}
+```
+
+- `max_chars`: XHS truncates beyond this. 20 is the platform-wide soft
+  ceiling; 22-24 sometimes works for short-character titles. Don't set it
+  higher than 25.
+- `must_contain`: a list (any-of). Set to `null` or omit to inherit from
+  `output_language` defaults.
+
+### Switching to a different platform / vertical
+
+Want this skill to write Walmart-Marketplace content instead?
+
+```json
+"output_language": "zh",
+"title_constraints": { "max_chars": 20, "must_contain": ["沃尔玛"] }
+```
+
+You'll also want to:
+- Edit your `angle_quotas` to be Walmart-shaped (e.g. drop ai-workflow
+  ceiling, add `walmart-suppliers` floor).
+- The patterns examples in `references/title-and-cta-patterns.md` use
+  亚马逊/Amazon — adapt mentally or fork the doc.
+
+## 4. Forbidden brands and source tokens (privacy)
+
+These are **merge** lists, not **replace** lists. The defaults are a starter
+set the skill ships with — your own additions stack on top.
+
+### `forbidden_brands_in_copy`
+
+Stops your internal tool / brand names from accidentally leaking into public
+copy. Defaults are placeholder examples from the original author —
+**replace them with names that actually matter for you**:
+
+```json
+"forbidden_brands_in_copy": [
+  "your-internal-tool-name",
+  "your-internal-product",
+  "your-deprecated-brand"
+]
+```
+
+The defaults (`openclaw`, `亚马逊大龙虾`, `nano banana`, `lobster mark`) are
+specific to the original author's environment — clean them out unless you
+genuinely want them blocked too.
+
+### `forbidden_source_tokens`
+
+Stops paid feed / research source names from leaking. The shipped defaults
+cover well-known external paid sources (BDS, AMZ123, Helium 10 Podcast,
+Marketplace Pulse, Modern Retail, PPC Land, We Are Sellers). **Keep them**
+unless you have a specific reason to drop one — they're worth blocking by
+default. Then add your own:
+
+```json
+"forbidden_source_tokens": [
+  "billion dollar sellers",
+  "we are sellers",
+  "amz123",
+  "bds",
+  "wearesellers",
+  "billiondollarsellers",
+  "helium 10 podcast",
+  "marketplace pulse",
+  "modern retail",
+  "ppc land",
+
+  "your-internal-database",
+  "your-paid-tracker",
+  "your-private-data-feed"
+]
+```
+
+The validator does case-insensitive substring matching, so `"helium 10"`
+will catch `"Helium 10"`, `"helium10"`, etc.
+
+## 5. Angle quotas
+
+To rebalance which categories get how much airtime:
+
+```json
+"angle_quotas": {
+  "amazon-news":           { "floor": 3, "ceiling": 6, "color": "amber"  },
+  "ai-workflow":           { "floor": 1, "ceiling": 2, "color": "blue"   },
+  "your-new-category":     { "floor": 1, "ceiling": 3, "color": "amber"  }
+}
+```
+
+- `floor` and `ceiling` are over a 14-day rolling window.
+- `color` must be one of: `amber`, `green`, `red`, `blue`, `slate`,
+  `violet`. New colors require renderer changes.
+- New categories must also be referenced in `post.json.topic.category` and
+  `design.theme` — the renderer falls back to `default` (neutral indigo)
+  for unknown values.
+
+The sum of floors should be ≤ 14; the sum of ceilings should be > 14
+(otherwise some days have no allowed category).
+
+## 6. Paths
+
+```json
+"paths": {
+  "drafts_root": "~/xhs-amazon-drafts",
+  "desktop_root": "",
+  "history_lookback_days": 30
+}
+```
+
+- `drafts_root`: parent of all daily directories. `~` is expanded.
+- `desktop_root`: optional mirror destination (e.g. `~/Desktop/XHS-Amazon`)
+  so the rendered cards land somewhere you can airdrop / iCloud-sync to your
+  phone. Empty string = skip mirror.
+- `history_lookback_days`: validator dedup window. 30 is the default; 14 is
+  reasonable if you post more than once a day.
+
+## 7. Adding industry-specific keywords
+
+The history builder counts how often certain keywords appear in titles +
+angles, so you can see saturation. Default keywords are Amazon-seller
+specific (PPC, COSMO, FBA, Brand Registry, etc.). Add your own:
+
+```json
+"extra_angle_keywords": [
+  "Walmart Connect",
+  "Sponsored Search",
+  "your-niche-keyword"
+]
+```
+
+These get merged with the defaults, not replacing them. They show up in
+`research/recent_history.md` as an extra audit signal.
+
+## 8. Where the config lives
+
+Resolution order (every script in this skill):
+
+1. `--config <path>` argument
+2. `XHS_AMAZON_CONFIG` env var (an absolute path)
+3. `~/.config/amazon-xhs-poster/config.json`
+
+For a one-shot test or alternate persona:
+
+```bash
+XHS_AMAZON_CONFIG=/tmp/walmart-config.json \
+  python3 ~/.claude/skills/amazon-xhs-poster/scripts/init-day.py
+```
+
+For production: drop a working config at the default path and forget about
+it.
+
+## 9. Things you genuinely should not change
+
+- `design.style` validator allowlist. Only `iphone-notes-editorial-v4`
+  matches the renderer's CSS contract.
+- The 6–9 card count window. Less than 6 is too thin to be a memo; more
+  than 9 won't fit in XHS's carousel without aggressive editing.
+- The `append_hashtags_to_content: true` requirement. XHS search picks up
+  the in-body hashtags much more reliably than the dedicated tag field.
+
+If you find yourself wanting to change these, it's worth pausing and asking
+why — they're shaped by platform constraints, not author preference.

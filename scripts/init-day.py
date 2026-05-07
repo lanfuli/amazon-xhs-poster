@@ -1,0 +1,239 @@
+#!/usr/bin/env python3
+"""Initialize today's Amazon XHS draft directory.
+
+Creates:
+  <drafts_root>/<DATE>/
+    research/
+      topic.md                 (empty stub for the editorial agent to fill)
+      recent_history.json      (built by history.py)
+      recent_history.md
+    cards/                     (empty; renderer fills it later)
+    post.json                  (skeleton — persona + paths from config; topic / cards left empty)
+
+Defaults today's date to America/Los_Angeles (override with --date YYYY-MM-DD).
+
+Resolution order for config:
+  1. --config <path>
+  2. XHS_AMAZON_CONFIG env var
+  3. ~/.config/amazon-xhs-poster/config.json
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+DEFAULT_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
+
+
+def resolve_config_path(cli_path: str | None) -> Path | None:
+    if cli_path:
+        return Path(cli_path).expanduser().resolve()
+    env = os.environ.get("XHS_AMAZON_CONFIG")
+    if env:
+        return Path(env).expanduser().resolve()
+    if DEFAULT_CONFIG_PATH.exists():
+        return DEFAULT_CONFIG_PATH
+    return None
+
+
+def load_config(cli_path: str | None) -> tuple[dict, Path]:
+    path = resolve_config_path(cli_path)
+    if not path:
+        sys.exit(
+            "no config.json found; copy config.example.json from the skill, "
+            "fill it in, and either pass --config <path>, set XHS_AMAZON_CONFIG, "
+            f"or place it at {DEFAULT_CONFIG_PATH}"
+        )
+    if not path.exists():
+        sys.exit(f"config not found: {path}")
+    return json.loads(path.read_text()), path
+
+
+def today_pt() -> str:
+    return datetime.now(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%d")
+
+
+def expand(p: str | None) -> Path | None:
+    if not p:
+        return None
+    return Path(p).expanduser().resolve()
+
+
+TOPIC_STUB = """# Topic — {date}
+
+> Fill this in during Stage 1 (research). Drop links inside the Sources block;
+> the editorial stage reads from this file plus `research/recent_history.md`.
+
+## Selection
+
+- **Category**: (one of: amazon-news / white-hat-tactic / risk-warning / ai-workflow / walmart-multi-channel / creator-signal)
+- **Selection reason**: (e.g. "walmart-multi-channel: 14d count=0, floor=1, gap=∞")
+- **Angle (1-2 sentences)**:
+- **Why now**:
+
+## Sources (must be real https:// URLs)
+
+1.
+2.
+3.
+
+## Public-source policy
+
+Do not name sites or research stack in cards / xhs.content. Treat as internal
+unless the user explicitly asks for attribution.
+"""
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", default=None, help="path to config.json")
+    parser.add_argument("--date", default=None, help="YYYY-MM-DD (default: today PT)")
+    parser.add_argument("--skip-history", action="store_true",
+                        help="don't run history.py; leave recent_history.* unbuilt")
+    args = parser.parse_args()
+
+    config, config_path = load_config(args.config)
+    date = args.date or today_pt()
+
+    paths_cfg = config.get("paths") or {}
+    drafts_root = expand(paths_cfg.get("drafts_root"))
+    if not drafts_root:
+        sys.exit("config.paths.drafts_root is empty — set it in your config.json")
+    drafts_root.mkdir(parents=True, exist_ok=True)
+
+    job_dir = drafts_root / date
+    research_dir = job_dir / "research"
+    cards_dir = job_dir / "cards"
+    job_dir.mkdir(parents=True, exist_ok=True)
+    research_dir.mkdir(parents=True, exist_ok=True)
+    cards_dir.mkdir(parents=True, exist_ok=True)
+
+    desktop_root_raw = paths_cfg.get("desktop_root")
+    if desktop_root_raw:
+        desktop_root = expand(desktop_root_raw) / date
+        (desktop_root / "cards").mkdir(parents=True, exist_ok=True)
+        (desktop_root / "meta").mkdir(parents=True, exist_ok=True)
+    else:
+        desktop_root = None
+
+    persona_cfg = config.get("persona") or {}
+    language = (config.get("output_language") or "zh").strip().lower()
+    if language not in ("zh", "en"):
+        language = "zh"
+
+    attention_goal_default = {
+        "zh": "3秒内停留并产生关注/收藏意图",
+        "en": "Stop the scroll in 3 seconds, earn a follow or save",
+    }[language]
+
+    post_json_path = job_dir / "post.json"
+    if not post_json_path.exists():
+        skeleton = {
+            "version": "1.1",
+            "job_date": date,
+            "language": language,
+            "persona": {
+                "identity": persona_cfg.get("identity", ""),
+                "brand_cn": persona_cfg.get("brand_cn", ""),
+                "location": persona_cfg.get("location", ""),
+                "years_experience": persona_cfg.get("years_experience", 0),
+                "voice": persona_cfg.get("voice", ""),
+                "signature": persona_cfg.get("signature") or persona_cfg.get("brand_cn", ""),
+            },
+            "topic": {
+                "category": "",
+                "angle": "",
+                "why_now": "",
+                "selection_reason": "",
+                "sources": []
+            },
+            "seo": {
+                "primary_keywords": [],
+                "secondary_keywords": [],
+                "hashtags": []
+            },
+            "strategy": {
+                "attention_goal": attention_goal_default,
+                "psychology_hooks": [],
+                "ai_positioning": "",
+                "dedupe_window_days": int(paths_cfg.get("history_lookback_days") or 30)
+            },
+            "design": {
+                "theme": "auto",
+                "style": "iphone-notes-editorial-v4",
+                "ratio": "3:4",
+                "width": 1080,
+                "height": 1440,
+                "cards": 6,
+                "cards_min": 6,
+                "cards_max": 9,
+                "accent_strategy": "color-psychology"
+            },
+            "xhs": {
+                "title": "",
+                "title_max_length": int((config.get("title_constraints") or {}).get("max_chars") or 20),
+                "opening_hook": "",
+                "content": "",
+                "cta": "",
+                "tags": [],
+                "append_hashtags_to_content": True,
+                "schedule_at": "",
+                "delivery_mode": "manual"
+            },
+            "cards": [],
+            "paths": {
+                "job_dir": str(job_dir),
+                "desktop_root": str(desktop_root) if desktop_root else "",
+                "research_note": str(research_dir / "topic.md"),
+                "post_json": str(post_json_path),
+                "render_manifest": str(cards_dir / "render_manifest.json"),
+                "cards_dir": str(cards_dir)
+            },
+            "status": {
+                "research": "pending",
+                "editorial": "pending",
+                "render": "pending",
+                "qa": "pending",
+                "publish": "manual"
+            },
+            "qa_notes": [],
+            "job_type": "daily"
+        }
+        post_json_path.write_text(json.dumps(skeleton, ensure_ascii=False, indent=2) + "\n")
+        print(f"created skeleton {post_json_path}")
+    else:
+        print(f"reusing existing {post_json_path}")
+
+    topic_md = research_dir / "topic.md"
+    if not topic_md.exists():
+        topic_md.write_text(TOPIC_STUB.format(date=date))
+        print(f"created topic stub {topic_md}")
+
+    if not args.skip_history:
+        history_script = Path(__file__).parent / "history.py"
+        history_args = [
+            sys.executable,
+            str(history_script),
+            "--config", str(config_path),
+            "--output-json", str(research_dir / "recent_history.json"),
+            "--output-md", str(research_dir / "recent_history.md"),
+        ]
+        result = subprocess.run(history_args, capture_output=True, text=True)
+        if result.returncode != 0:
+            sys.stderr.write(result.stdout)
+            sys.stderr.write(result.stderr)
+            sys.exit(f"history.py failed (rc={result.returncode})")
+        print(result.stdout.strip())
+
+    print(f"\nready: {job_dir}")
+    print("next: fill in research/topic.md, then write topic + cards into post.json")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,69 @@
+{
+  "$schema_version": "1.0",
+  "_comment": "Copy this file to ~/.config/amazon-xhs-poster/config.json (or anywhere and set XHS_AMAZON_CONFIG=<path>). Edit persona / paths / forbidden lists for your account. The skill reads --config <path> first, then $XHS_AMAZON_CONFIG, then the default location.",
+
+  "persona": {
+    "brand_cn": "REPLACE_ME — your Xiaohongshu account brand string in Chinese (e.g. 文森特在美国)",
+    "identity": "REPLACE_ME — one-line operator backstory (e.g. 西雅图 10 年亚马逊老卖家)",
+    "voice": "克制、节制、不卖鸡汤，像在带团队的实战操盘手",
+    "signature": "REPLACE_ME — usually same as brand_cn",
+    "location": "Seattle, WA",
+    "years_experience": 10
+  },
+
+  "output_language": "zh",
+  "_output_language_help": "zh = Chinese output (default, optimized for Xiaohongshu native audience). en = English output (for Lemon8 / Threads / Instagram-equivalent / English-speaking creator platforms). Switching to 'en' auto-defaults must_contain, cta_tokens, and decision_verbs to English equivalents — but you can still override any of those explicitly below.",
+
+  "title_constraints": {
+    "max_chars": 20,
+    "must_contain": ["亚马逊"]
+  },
+
+  "_cta_tokens_help": "Optional override. The skill will pick a sensible default for your output_language; specify here only if you need a different vocabulary. ZH default: ['点赞', '收藏', '关注', '不迷路', '评论']. EN default: ['like', 'save', 'follow', 'comment', 'share', 'subscribe'].",
+  "cta_tokens": null,
+
+  "_decision_verbs_help": "Optional override for the ai-workflow card 5 decision-verb soft-warn. Leave null to use language-default. ZH default: ['决定', '判断', '换', '停', '加预算', '下架', '挑选', '暂停', '转移', '重组', '砍', '上架', '留']. EN default: ['decide', 'switch', 'pause', 'stop', 'increase budget', 'remove', 'select', 'transfer', 'rebuild', 'cut', 'promote', 'keep', 'kill'].",
+  "decision_verbs": null,
+
+  "forbidden_brands_in_copy": [
+    "openclaw",
+    "亚马逊大龙虾",
+    "nano banana",
+    "lobster mark"
+  ],
+
+  "forbidden_source_tokens": [
+    "billion dollar sellers",
+    "we are sellers",
+    "amz123",
+    "bds",
+    "wearesellers",
+    "billiondollarsellers",
+    "helium 10 podcast",
+    "marketplace pulse",
+    "modern retail",
+    "ppc land"
+  ],
+
+  "angle_quotas": {
+    "amazon-news":           { "floor": 2, "ceiling": 5, "color": "amber"  },
+    "white-hat-tactic":      { "floor": 2, "ceiling": 5, "color": "green"  },
+    "risk-warning":          { "floor": 2, "ceiling": 5, "color": "red"    },
+    "ai-workflow":           { "floor": 2, "ceiling": 4, "color": "blue"   },
+    "walmart-multi-channel": { "floor": 1, "ceiling": 3, "color": "slate"  },
+    "creator-signal":        { "floor": 0, "ceiling": 2, "color": "violet" }
+  },
+
+  "paths": {
+    "drafts_root": "~/xhs-amazon-drafts",
+    "desktop_root": "",
+    "history_lookback_days": 30
+  },
+
+  "extra_angle_keywords": [],
+
+  "publish_adapter": {
+    "enabled": false,
+    "module_path": null
+  }
+}
