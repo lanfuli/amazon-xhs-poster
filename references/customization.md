@@ -4,6 +4,14 @@ The skill ships with defaults aimed at Amazon-seller XHS content in
 Mandarin. Almost everything is configurable through one `config.json`. This
 doc walks through the realistic customizations.
 
+> **Privacy reminder**: your filled-in `config.json` should NEVER be
+> committed to a public repository. It contains identifying details (your
+> persona name, brand string, location) plus your `forbidden_brands_in_copy`
+> and `forbidden_source_tokens` lists — which together advertise exactly
+> which competitor / paid-feed names you don't want surfacing in your
+> output. Treat the config like an env file. The skill's `.gitignore`
+> already excludes it; verify your fork preserves that rule.
+
 ## 1. Setting your persona
 
 Open your `config.json` and edit the `persona` block:

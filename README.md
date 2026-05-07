@@ -42,6 +42,15 @@ cp ~/.claude/skills/amazon-xhs-poster/config.example.json \
 $EDITOR ~/.config/amazon-xhs-poster/config.json
 ```
 
+> ⚠ **Don't commit `config.json` to a public repo.** It contains your
+> persona name, brand string, and `forbidden_brands_in_copy` /
+> `forbidden_source_tokens` lists — names you specifically don't want
+> showing up in your feed. The skill's `.gitignore` already excludes
+> `config.json`, but if you fork this repo or move the config into your
+> own repo, double-check it stays out of git. Use
+> [`config.example.json`](config.example.json) as the version-controlled
+> template instead.
+
 In the config, at minimum:
 
 - Set `persona.brand_cn` (your account brand / display string)

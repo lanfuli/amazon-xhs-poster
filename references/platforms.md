@@ -1,9 +1,13 @@
 # Platforms
 
-> Set `config.platform` to pick the target. Each platform comes with its
-> own validator limits, render behavior, and `post.md` layout. Defaults
-> below are platform-natural; tighten via `config.title_constraints` /
-> `config.cta_tokens` etc. as needed.
+> Set `config.platform` to pick the target. Each platform has its own
+> **validator limits** (title length, body cap, hashtag rules, card count
+> range) and its own **`post.md` output layout** (carousel / long-form /
+> thread). The renderer itself is platform-agnostic — it paints PNG
+> cards when `cards[]` is non-empty (size already enforced by the
+> validator), and writes an empty manifest otherwise (text-only
+> platforms). Defaults below are platform-natural; tighten via
+> `config.title_constraints` / `config.cta_tokens` etc. as needed.
 
 ## Language × Platform matrix
 
