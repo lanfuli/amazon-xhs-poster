@@ -452,6 +452,7 @@ const cards = (root.cards || []).map(normalizeCard);
 // manifest and exit cleanly so downstream make-post-md.py can run.
 if (cards.length === 0) {
   const emptyManifest = {
+    platform: root.platform || 'xiaohongshu',
     theme: themeKey || 'default',
     renderedAt: new Date().toISOString(),
     cards: [],
@@ -520,6 +521,7 @@ for (const [index, card] of cards.entries()) {
 }
 
 const renderManifest = {
+  platform: root.platform || 'xiaohongshu',
   theme: themeKey || 'default',
   renderedAt: new Date().toISOString(),
   cards: outputs

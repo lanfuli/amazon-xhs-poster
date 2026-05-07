@@ -258,9 +258,11 @@ def main():
     )
 
     cards = []
+    manifest_platform = None
     manifest_path = cards_dir / "render_manifest.json"
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text())
+        manifest_platform = (manifest.get("platform") or "").strip().lower() or None
         for c in manifest.get("cards") or []:
             png = Path(c.get("png") or "")
             cards.append(png.name)
@@ -276,6 +278,19 @@ def main():
     platform = resolve_platform(args.platform, post, args.config)
     H = HEADERS_BY_LANG[language]
     fmt = PLATFORM_FORMAT.get(platform, "carousel")
+
+    # Improvement 3: detect when render manifest was generated for a different
+    # platform than what we're rendering post.md for now (happens when user
+    # passes --platform to override). Cards may exist but for the wrong shape.
+    if manifest_platform and manifest_platform != platform:
+        print(
+            f"warning: render_manifest.json was generated for platform "
+            f"{manifest_platform!r} but post.md is being generated for "
+            f"{platform!r}. Cards may not match {platform}'s expected shape "
+            f"(re-run render.mjs with the post.json updated to platform={platform!r} "
+            f"if the cards look wrong).",
+            file=sys.stderr,
+        )
 
     if fmt == "long-form-text":
         lines = render_long_form(post, hashtag_line, H, platform, job_date, timestamp)

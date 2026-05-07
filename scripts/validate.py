@@ -495,6 +495,17 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             f"xhs.title exceeds {title_max} characters (platform={platform!r}): {len(title)}"
         )
 
+    # Improvement 2: warn when title appears verbatim in content's opening
+    # (carousel platforms only — visual redundancy when first card and post body
+    # both lead with the same line). Compare lowercase, prefix-2x window.
+    if preset["renders_cards"] and title and content:
+        prefix_window = content.lower()[:max(len(title) * 2, 60)]
+        if title.lower() in prefix_window:
+            warnings.append(
+                f"xhs.title ({title!r}) appears verbatim in the opening of xhs.content; "
+                f"consider varying the headline to avoid visual redundancy in post.md"
+            )
+
     # Body cap (skipped if preset.body_max is None, e.g. xiaohongshu uses
     # soft target rather than hard cap). For X, CJK characters count as
     # weight 2 toward the 280-char limit (twitter-text spec).
@@ -523,6 +534,14 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             errors.append(
                 f"xhs.thread has {len(thread)} posts but platform "
                 f"{platform!r} caps threads at {thread_limit}"
+            )
+        # Improvement 1: soft-warn for X threads >10 posts (drop-off is steep
+        # after 7-8 in practice; engagement data shows 5-7 is the sweet spot).
+        if platform == "x" and len(thread) > 10:
+            warnings.append(
+                f"xhs.thread has {len(thread)} posts; X engagement drops sharply "
+                f"after ~7 tweets. Consider splitting into multiple threads or "
+                f"compressing to 5-7 posts."
             )
         for i, item in enumerate(thread):
             t = str(item or "").strip()
