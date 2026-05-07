@@ -487,30 +487,62 @@ async function fetchWearesellers() {
     // We want HOT posts that are NOT paid. The script walks each anchor
     // and inspects its parent row for these markers, then sorts: hot+free
     // first, then plain free, then drop paid entirely.
-    const links = await page.$$eval(
-      'a[href*="/question/"], a[href*="/headline/"], a[href*="/article/"]',
-      (nodes) => {
-        return nodes.slice(0, 80).map((n) => {
-          // Walk up to find the post-row container so we can inspect
-          // sibling badges/icons. 4 levels up is usually enough.
-          let row = n;
-          for (let i = 0; i < 4 && row && row.parentElement; i++) {
-            row = row.parentElement;
-            if (row.querySelector('.badge-hot, img[src*="pay_"]')) break;
-          }
-          const isHot = !!row?.querySelector('.badge-hot');
-          const isPaid = !!row?.querySelector(
-            'img[src*="pay_fee"], img[src*="pay_high"], img[src*="pay_fee_black"]'
-          );
-          return {
-            href: n.href,
-            text: n.innerText?.trim().slice(0, 160) || '',
-            isHot,
-            isPaid,
-          };
-        });
+    // Two-pass DOM walk. wearesellers' logged-in homepage marks hot posts
+    // with <span class="zd-question">热</span> (NOT .badge-hot — that's
+    // the anonymous-view class) and paid posts with <img src=".../pay_fee.png">
+    // or pay_high.png / pay_fee_black.png. Anchors don't have <li> parents,
+    // so we walk up to 6 levels from each marker to find the nearest
+    // question/article/headline anchor that the marker belongs to.
+    const links = await page.evaluate(() => {
+      const allAnchors = Array.from(document.querySelectorAll(
+        'a[href*="/question/"], a[href*="/headline/"], a[href*="/article/"]'
+      ));
+
+      // Walk up from `el` looking for any element that contains an anchor
+      // matching `selector`. Returns that anchor or null.
+      function findNearestAnchor(el, selector, maxLevels = 6) {
+        let row = el;
+        for (let i = 0; i < maxLevels && row?.parentElement; i++) {
+          row = row.parentElement;
+          const a = row.querySelector(selector);
+          if (a) return a;
+        }
+        return null;
       }
-    );
+
+      const ANCHOR_SEL = 'a[href*="/question/"], a[href*="/headline/"], a[href*="/article/"]';
+
+      // Pass 1: hot anchors. Use spans containing exactly "热" (with class
+      // zd-question for logged-in view, badge-hot for anonymous — both
+      // are accepted).
+      const hotMarkers = [
+        ...document.querySelectorAll('.badge-hot'),
+        ...Array.from(document.querySelectorAll('span.zd-question'))
+          .filter(s => s.textContent?.trim() === '热'),
+      ];
+      const hotAnchorSet = new Set();
+      for (const marker of hotMarkers) {
+        const a = findNearestAnchor(marker, ANCHOR_SEL);
+        if (a) hotAnchorSet.add(a);
+      }
+
+      // Pass 2: paid anchors.
+      const payIcons = document.querySelectorAll(
+        'img[src*="pay_fee"], img[src*="pay_high"], img[src*="pay_fee_black"]'
+      );
+      const paidAnchorSet = new Set();
+      for (const icon of payIcons) {
+        const a = findNearestAnchor(icon, ANCHOR_SEL);
+        if (a) paidAnchorSet.add(a);
+      }
+
+      return allAnchors.slice(0, 100).map((n) => ({
+        href: n.href,
+        text: n.innerText?.trim().slice(0, 160) || '',
+        isHot: hotAnchorSet.has(n),
+        isPaid: paidAnchorSet.has(n),
+      }));
+    });
 
     // Dedupe by canonical question/article ID — wearesellers homepage links
     // include many anchors to the same thread (one per recent reply). We
@@ -530,7 +562,9 @@ async function fetchWearesellers() {
     };
 
     const seen = new Set();
-    const candidates = links.filter(l => {
+    // Simple filter: anything non-paid is fair game. Hot tag is annotated
+    // for editorial visibility but not used to prioritize.
+    const unique = links.filter(l => {
       if (!l.href.includes('wearesellers.com')) return false;
       if (l.isPaid) return false;                     // visual icon test
       if (/\/article\/paid\//.test(l.href)) return false;  // URL path test (belt+suspenders)
@@ -541,14 +575,7 @@ async function fetchWearesellers() {
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    });
-
-    // Sort: hot posts first, then everything else. Within each, original
-    // homepage order (which is roughly recent activity).
-    const unique = [
-      ...candidates.filter(l => l.isHot),
-      ...candidates.filter(l => !l.isHot),
-    ].slice(0, topN);
+    }).slice(0, topN);
 
     if (!unique.length) {
       lines.push('_(no posts found on homepage — check login state)_');

@@ -94,13 +94,13 @@
 
     "linkedin": {
       "enabled": true,
-      "_help": "Use the linkedin.com/in/<slug>/ slug from the URL. Watch for slug collisions — common names like 'dharmeshmehta' redirect to whoever registered first (sometimes a different person). Verify by clicking the URL and checking the profile bio matches who you want.",
+      "_help": "Use the linkedin.com/in/<slug>/ slug from the URL bar — visit the profile in your browser to copy. Watch for: (a) slug collisions on common names ('dharmeshmehta' redirects to a different Dharmesh; the Amazon VP is at 'dharmeshmmehta' with double m). (b) Auto-generated slugs with a numeric ID suffix (e.g. 'andy-jassy-8b1615') — those are the canonical URLs even when a vanity-style 'andyjassy' looks more memorable. (c) Don't reuse X handles for LinkedIn slugs — they're separate platforms (Juozas Kaziukenas is @juokaz on X but /in/juozas/ on LinkedIn).",
       "profiles": [
-        { "name": "Andy Jassy",        "slug": "andyjassy" },
-        { "name": "Doug Herrington",   "slug": "doug-herrington-5b4a6710" },
+        { "name": "Andy Jassy",        "slug": "andy-jassy-8b1615" },
+        { "name": "Doug Herrington",   "slug": "doug-herrington" },
         { "name": "Dharmesh Mehta",    "slug": "dharmeshmmehta" },
         { "name": "Doug McMillon",     "slug": "dougmcmillon" },
-        { "name": "Juozas Kaziukenas", "slug": "juokaz" }
+        { "name": "Juozas Kaziukenas", "slug": "juozas" }
       ]
     },
 
