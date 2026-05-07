@@ -129,60 +129,90 @@ window or Ctrl+C in the terminal. Cookies save to
 X / LinkedIn login, that's because Playwright's Chromium has
 detectable automation indicators. **Switch to Option B**.
 
-#### Option B — Connect to your real Chrome via CDP (workaround)
+#### Option B — Real Chrome with a separate debug profile (workaround)
 
-This uses your **actual Chrome** (already logged in to everything),
-attaching via Chrome DevTools Protocol. Google sees real Chrome and
-doesn't trigger the "may not be secure" warning.
+This uses **real Chrome** (not Playwright Chromium), but with a
+**separate dedicated profile** — not your daily Chrome's profile.
+Google sees real Chrome's fingerprint and doesn't trigger the "may
+not be secure" warning. Real Chrome accepts CDP from any origin on
+127.0.0.1.
 
-One-time prep — quit Chrome and relaunch it with the debug flag. The
-shipped helper does this in one command:
+> ⚠️ Why a separate profile, not your daily Chrome's profile?
+>
+> Chrome 136+ refuses `--remote-debugging-port` with the default user
+> profile, by design — it's a security measure to prevent malicious
+> sites from sniffing logged-in sessions in your real Chrome. So
+> "connect Playwright to your already-logged-in daily Chrome" is
+> impossible in modern Chrome. The workaround is a separate profile
+> (still real Chrome, just isolated) where you log in once.
+
+Setup:
 
 ```bash
 cd ~/.claude/skills/amazon-xhs-poster
 bash scripts/launch-chrome-debug.sh
 ```
 
-This quits your existing Chrome (cleanly via AppleScript) and
-relaunches it with `--remote-debugging-port=9222`. Your normal
-profile loads — all your existing logins are preserved.
+This launches a **separate Chrome window** (parallel to your daily
+Chrome — which is untouched) with a profile dir at
+`~/.config/amazon-xhs-poster/chrome-debug-profile/`. First run is
+empty; you log in to X / LinkedIn / wearesellers manually in that
+window. Cookies persist in the profile dir, so future runs of the
+script don't relaunch Chrome (script is idempotent — sees Chrome
+already on debug port and exits early).
 
-Then verify the connection:
+Then verify Playwright can connect:
 
 ```bash
 node scripts/fetch-gated.mjs --connect-cdp --setup
 ```
 
-If that prints `✓ Connected. Active tab title: …`, you're good. If
-you weren't already logged in to one of X / LinkedIn /
-wearesellers in your daily Chrome, log in normally in your Chrome
-window now (the script doesn't need to drive that part — Google
-treats it as a normal user login).
+If you see `✓ Connected. Active tab title: …`, you're good.
 
 #### Daily fetch
 
-For Option A: `node scripts/fetch-gated.mjs --date YYYY-MM-DD`
-
-For Option B: keep Chrome running with the debug flag (re-run
-`launch-chrome-debug.sh` after every reboot or full Chrome quit), then:
-
+**Option A** (Playwright Chromium):
 ```bash
+node scripts/fetch-gated.mjs --date YYYY-MM-DD
+```
+
+**Option B** (real Chrome + separate profile + CDP):
+```bash
+# Step 1: only if the debug Chrome isn't already running. The launch
+# script is idempotent so running it always is safe — if Chrome is
+# already up, it exits in <1s.
+bash scripts/launch-chrome-debug.sh
+
+# Step 2: fetch
 node scripts/fetch-gated.mjs --connect-cdp --date YYYY-MM-DD
 ```
 
-#### How CDP mode behaves with your daily Chrome
+#### Behavior with your daily Chrome (Option B)
 
-When you run with `--connect-cdp`, the script:
+When you run `launch-chrome-debug.sh`:
 
-- **Opens new tabs** for each fetch target (does not touch your
-  existing tabs)
-- Reads the page DOM (no posts, likes, follows, DMs)
-- **Closes only the tabs it opened** when done
-- Does **not** close your Chrome window
+- A **separate Chrome window** opens with the dedicated profile.
+- Your **daily Chrome is not touched**. Different `--user-data-dir`
+  values mean macOS treats them as two separate Chrome instances
+  running in parallel.
+- The `Dock` icon may show the same Chrome icon for both — they share
+  the application binary but have separate windows and profiles.
 
-If your bank tab / email / whatever is open in Chrome, it stays
-exactly where it was. The script's only side effect is briefly using
-your network and CPU.
+When `fetch-gated.mjs --connect-cdp` runs:
+
+- Opens **new tabs** in the *debug* Chrome (not your daily).
+- Reads page DOM (no posts, likes, follows, DMs).
+- Closes only the tabs it opened.
+- Does not close the debug Chrome window — leave it running.
+
+#### Resetting the debug profile
+
+If logins go bad / you want a clean slate:
+```bash
+rm -rf ~/.config/amazon-xhs-poster/chrome-debug-profile/
+bash scripts/launch-chrome-debug.sh
+# Log in again in the new Chrome window
+```
 
 ### 4. Daily fetch
 
