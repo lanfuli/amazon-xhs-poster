@@ -479,17 +479,36 @@ async function fetchWearesellers() {
     await page.goto('https://www.wearesellers.com/', { waitUntil: 'domcontentloaded', timeout: 30000 });
     await sleep(2000);
 
-    // wearesellers has multiple URL patterns. Prefer /question/ (free Q&A
-    // with full body content). Skip /article/paid/ — those are paywalled
-    // even when logged in (subscription required for body), so we'd just
-    // get 5 titles with empty bodies.
+    // wearesellers DOM structure (verified 2026-05):
+    //   - Hot post badge: <span class="badge-hot">热</span>
+    //   - Paid post icon: <img src=".../pay_fee.png"> or pay_high.png
+    //     or pay_fee_black.png (悬赏 / 私密悬赏 / 已公开悬赏)
+    //
+    // We want HOT posts that are NOT paid. The script walks each anchor
+    // and inspects its parent row for these markers, then sorts: hot+free
+    // first, then plain free, then drop paid entirely.
     const links = await page.$$eval(
       'a[href*="/question/"], a[href*="/headline/"], a[href*="/article/"]',
       (nodes) => {
-        return nodes.slice(0, 50).map((n) => ({
-          href: n.href,
-          text: n.innerText?.trim().slice(0, 160) || '',
-        }));
+        return nodes.slice(0, 80).map((n) => {
+          // Walk up to find the post-row container so we can inspect
+          // sibling badges/icons. 4 levels up is usually enough.
+          let row = n;
+          for (let i = 0; i < 4 && row && row.parentElement; i++) {
+            row = row.parentElement;
+            if (row.querySelector('.badge-hot, img[src*="pay_"]')) break;
+          }
+          const isHot = !!row?.querySelector('.badge-hot');
+          const isPaid = !!row?.querySelector(
+            'img[src*="pay_fee"], img[src*="pay_high"], img[src*="pay_fee_black"]'
+          );
+          return {
+            href: n.href,
+            text: n.innerText?.trim().slice(0, 160) || '',
+            isHot,
+            isPaid,
+          };
+        });
       }
     );
 
@@ -511,9 +530,10 @@ async function fetchWearesellers() {
     };
 
     const seen = new Set();
-    const unique = links.filter(l => {
+    const candidates = links.filter(l => {
       if (!l.href.includes('wearesellers.com')) return false;
-      if (/\/article\/paid\//.test(l.href)) return false;
+      if (l.isPaid) return false;                     // visual icon test
+      if (/\/article\/paid\//.test(l.href)) return false;  // URL path test (belt+suspenders)
       if (/[?&]page=|\/category-/.test(l.href)) return false;
       if (l.text.length < 12) return false;
       if (looksLikeUsername(l.text)) return false;
@@ -521,7 +541,14 @@ async function fetchWearesellers() {
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    }).slice(0, topN);
+    });
+
+    // Sort: hot posts first, then everything else. Within each, original
+    // homepage order (which is roughly recent activity).
+    const unique = [
+      ...candidates.filter(l => l.isHot),
+      ...candidates.filter(l => !l.isHot),
+    ].slice(0, topN);
 
     if (!unique.length) {
       lines.push('_(no posts found on homepage — check login state)_');
@@ -532,6 +559,7 @@ async function fetchWearesellers() {
           const cleanUrl = link.href.split('?')[0].split('#')[0];
           await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
           await sleep(1500);
+          const hotTag = link.isHot ? ' [hot]' : '';
           // wearesellers uses class names like .question-content, .answer-content,
           // .article-detail. Try a list of selectors and concatenate visible
           // text from the question + first-best answer.
@@ -555,7 +583,7 @@ async function fetchWearesellers() {
             }
             return chunks.join('\n\n').slice(0, 800);
           }).catch(() => '');
-          lines.push(`- **${link.text}**`);
+          lines.push(`- **${link.text}**${hotTag}`);
           lines.push(`  ${cleanUrl}`);
           if (body) {
             const summary = body.split('\n').filter(l => l.trim()).slice(0, 5).join(' / ');
