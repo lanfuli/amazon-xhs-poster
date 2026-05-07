@@ -155,6 +155,6 @@ tags and add topic-specific ones.
 
 ## License
 
-Pick whatever license you want for your fork. The original author wrote
-the methodology and source code; this packaged form is meant to be
-shareable.
+[MIT](LICENSE) — free to use, modify, and redistribute, including
+commercially. Forks are welcome to relicense their derivative work; just
+keep the original copyright notice in any portion you reuse verbatim.

@@ -292,12 +292,24 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         cta_tokens = list(CTA_TOKENS_BY_LANG[language])
     else:
         cta_tokens = [str(x).strip() for x in cta_tokens_cfg if str(x).strip()]
+        if not cta_tokens:
+            info.append(
+                "config.cta_tokens is set to an empty list — last-card CTA token "
+                "check is DISABLED. Set to null to use the language default, or "
+                "provide ['like', 'follow', ...] to override the vocabulary."
+            )
 
     decision_verbs_cfg = config.get("decision_verbs")
     if decision_verbs_cfg is None:
         decision_verbs = list(DECISION_VERBS_BY_LANG[language])
     else:
         decision_verbs = [str(x).strip() for x in decision_verbs_cfg if str(x).strip()]
+        if not decision_verbs:
+            info.append(
+                "config.decision_verbs is set to an empty list — ai-workflow "
+                "card 5 decision-verb soft-warn is DISABLED. Set to null to use "
+                "the language default."
+            )
 
     expected_brand_cn = (persona_cfg.get("brand_cn") or "").strip()
     if not expected_brand_cn or expected_brand_cn.startswith("REPLACE_ME"):
@@ -314,6 +326,12 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         must_contain_list = [str(raw_must_contain)]
     else:
         must_contain_list = [str(x) for x in raw_must_contain if str(x).strip()]
+        if not must_contain_list:
+            info.append(
+                "config.title_constraints.must_contain is set to an empty list — "
+                "title keyword requirement is DISABLED. Set to null to use the "
+                "language default, or ['Amazon', ...] to require any of those tokens."
+            )
 
     xhs = post.get("xhs") or {}
     persona = post.get("persona") or {}

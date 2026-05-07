@@ -40,9 +40,13 @@ Setting `output_language` to `"en"` auto-selects English defaults for:
 - `post.md` headers → English (`# Amazon Seller Note — DATE`, `## Title`, `## Body`, etc.)
 - `init-day.py` `strategy.attention_goal` → English variant
 
-**You can still override any of these explicitly.** Set the field to a
-list and the skill uses your list. Set it to `null` (or omit) and you get
-the language-default.
+**You can still override any of these explicitly.** Three states:
+
+| Value                        | Meaning |
+|------------------------------|---------|
+| `null` (or field omitted)    | Use the language default for `output_language`. |
+| `["a", "b", ...]` (non-empty)| Use exactly these as the allowed/required tokens. |
+| `[]` (explicitly empty)      | **Disable that check entirely.** The validator emits an `info` line so the bypass is visible. Use only when you have a deliberate reason (e.g. you're publishing to a platform that doesn't need a CTA token, or you handle title gating elsewhere). |
 
 ### Mixed-language workflows
 
@@ -142,8 +146,19 @@ default. Then add your own:
 ]
 ```
 
-The validator does case-insensitive substring matching, so `"helium 10"`
-will catch `"Helium 10"`, `"helium10"`, etc.
+The validator does **case-insensitive substring matching**, so
+`"helium 10"` will catch `"Helium 10"`, `"helium10"`, `"HELIUM 10 podcast"`,
+etc. This is intentional (catches casing tricks) but creates a foot-gun:
+
+- ❌ Don't add short generic tokens like `"open"` or `"ai"` — they'll
+  trigger on "open source", "open API", "AI agent", etc.
+- ✅ Do use distinctive multi-word phrases or rare brand codes:
+  `"acme research desk"`, `"bds"` (where the meaning is bounded), or
+  internal slugs like `"projx-dashboard"`.
+
+If you're unsure whether a token is "specific enough", grep your last
+month of drafts for it — if it appears anywhere in legitimate copy, it's
+too broad.
 
 ## 5. Angle quotas
 
