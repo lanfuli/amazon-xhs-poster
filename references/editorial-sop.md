@@ -120,8 +120,10 @@ in America/Los_Angeles.
 
    - `https://www.helium10.com/category/podcast/` — PUBLIC. Operator
      interviews and tactical case studies; episode list dated.
-   - `https://www.wearesellers.com/` — PUBLIC. Chinese seller community
-     discussion; frequently updated.
+   - `https://www.wearesellers.com/` — **GATED**. Homepage shows post
+     titles + metadata, but full discussion bodies require login. Use
+     `scripts/fetch-gated.mjs` (Tier C automation, see below) or paste
+     manually after logging in via your browser.
    - `https://www.amz123.com/t/...` — PUBLIC. Specific topic pages work,
      homepage is just a portal index.
    - `https://www.billiondollarsellers.com/archive` — GATED (paywall;
@@ -129,6 +131,15 @@ in America/Los_Angeles.
    - PPC Land / Marketplace Pulse / Modern Retail / SmartScout / Jungle
      Scout — used only when the topic genuinely needs them; label as
      supplemental, not primary.
+
+   ### Optional automation: `scripts/fetch-gated.mjs`
+
+   For users who want gated-source signal automated, the skill ships
+   `fetch-gated.mjs` — a Playwright script with persistent profile that
+   fetches X / LinkedIn / wearesellers content using your own browser
+   session. **Read [`gated-sources.md`](gated-sources.md) before
+   enabling**: there's a real ToS / account-suspension risk with
+   automating logged-in services. It's optional and disabled by default.
 
    ### Tier E — Audience signal only (NEVER copy verbatim)
 

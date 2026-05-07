@@ -4,6 +4,65 @@ All notable changes to this project are documented here. Format inspired
 by [Keep a Changelog](https://keepachangelog.com/); the project follows
 [Semantic Versioning](https://semver.org/) where reasonable.
 
+## [v1.4.0] — 2026-05-07
+
+Optional gated-source automation: pull research signal from X / LinkedIn /
+wearesellers.com using a persistent Playwright profile (the user's own
+logged-in session, kept in a separate browser profile from their daily
+browser).
+
+### Added
+
+- **`scripts/fetch-gated.mjs`** — Playwright-driven fetcher. First run
+  with `--setup` opens a visible Chrome window, the user logs in to X /
+  LinkedIn / wearesellers manually, profile saves. Subsequent runs go
+  headless and reuse cookies. Outputs
+  `<drafts_root>/<DATE>/research/gated-signal.md` for the editorial
+  stage to fold into `topic.md`.
+- **`config.gated_sources` block** — `enabled` flag (default false),
+  `browser_profile_dir`, configurable per-source lists (X handles,
+  LinkedIn slugs, wearesellers top-N) and lookback window.
+- **`references/gated-sources.md`** — full setup guide, ToS / risk
+  warning, troubleshooting (cookies expired / rate-limited / no
+  posts visible).
+- **Top-level `package.json`** — declares `playwright` as the
+  fetcher's dep. Users run `npm install` once at skill root, then
+  `npx playwright install chromium`. The render.mjs continues to use
+  `npx playwright` per-invocation independently.
+- **8 default X handles + 5 LinkedIn defaults** preconfigured: official
+  (@AmazonNews, @SellingonAmazon, @AmazonAds), analysts
+  (@MarketplacePulse, @juokaz, @retailgeek), press (@spencersoper),
+  practitioner (@BradleyASutton); LinkedIn — Andy Jassy / Doug
+  Herrington / Dharmesh Mehta / Doug McMillon / Juozas Kaziukenas.
+
+### Changed
+
+- **`references/editorial-sop.md`** — corrected `wearesellers.com`
+  classification from PUBLIC to GATED (homepage shows titles, full
+  bodies require login). Pointer added to fetch-gated.mjs as the
+  optional automation path.
+- **SKILL.md tree** updated to include the new script and reference
+  doc.
+
+### Risk note
+
+This release adds opt-in automation against logged-in services. X and
+LinkedIn ToS prohibit automated access; running fetch-gated.mjs against
+your account carries a real (low-but-nonzero) suspension risk. The
+script uses a separate browser profile, runs read-only, paces requests
+with random delays, and is **disabled by default**. See
+`references/gated-sources.md` before enabling.
+
+## [v1.3.1] — 2026-05-07
+
+Doc-only release. Probed all 16 documented data source URLs in the
+editorial SOP source ladder; replaced 6 dead URLs with current working
+equivalents, flagged 4 gated sources, added X/Twitter handles tier as
+human-research signal (NOT automation — that comes in v1.4.0).
+
+Plus housekeeping: removed stale "Threads" platform mentions, fixed
+README clone URL placeholder, added CHANGELOG.md (this file).
+
 ## [v1.3.0] — 2026-05-07
 
 Correctness pass + formal test infrastructure.
@@ -136,6 +195,8 @@ Initial public release. Single platform (Xiaohongshu), Chinese-first.
 - Generate-only by default; opt-in `publish_adapter` hook for those
   who genuinely want to automate publishing.
 
+[v1.4.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.1...v1.4.0
+[v1.3.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/lanfuli/amazon-xhs-poster/releases/tag/v1.3.0
 [v1.2.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.0.0...v1.1.0

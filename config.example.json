@@ -69,5 +69,44 @@
   "publish_adapter": {
     "enabled": false,
     "module_path": null
+  },
+
+  "_gated_sources_help": "Optional: pull research signal from login-protected services (X, LinkedIn, wearesellers.com) using a persistent Playwright browser profile. First run: `node scripts/fetch-gated.mjs --setup` opens a Chrome window for you to log in once; cookies persist in browser_profile_dir. Daily runs: `node scripts/fetch-gated.mjs --date YYYY-MM-DD` fetches headless, writes <drafts_root>/<DATE>/research/gated-signal.md. RISK: automating logged-in access may violate ToS and can risk account suspension. Use only for personal research; never share cookies. See references/gated-sources.md.",
+  "gated_sources": {
+    "enabled": false,
+    "browser_profile_dir": "~/.config/amazon-xhs-poster/browser-profile",
+    "lookback_hours": 24,
+    "fetch_delay_seconds": [3, 8],
+
+    "x": {
+      "enabled": true,
+      "handles": [
+        { "handle": "AmazonNews",      "tier": "official" },
+        { "handle": "SellingonAmazon", "tier": "official" },
+        { "handle": "AmazonAds",       "tier": "official" },
+        { "handle": "MarketplacePulse","tier": "analyst" },
+        { "handle": "juokaz",          "tier": "analyst" },
+        { "handle": "retailgeek",      "tier": "analyst" },
+        { "handle": "spencersoper",    "tier": "press" },
+        { "handle": "BradleyASutton",  "tier": "practitioner" }
+      ]
+    },
+
+    "linkedin": {
+      "enabled": true,
+      "_help": "Use the linkedin.com/in/<slug>/ slug. Find by visiting their profile. Only the listed names below are well-known public figures; replace with whoever matches your audience.",
+      "profiles": [
+        { "name": "Andy Jassy",       "slug": "andyjassy" },
+        { "name": "Doug Herrington",  "slug": "doug-herrington-5b4a6710" },
+        { "name": "Dharmesh Mehta",   "slug": "dharmeshmehta" },
+        { "name": "Doug McMillon",    "slug": "dougmcmillon" },
+        { "name": "Juozas Kaziukenas","slug": "juokaz" }
+      ]
+    },
+
+    "wearesellers": {
+      "enabled": true,
+      "top_n": 5
+    }
   }
 }

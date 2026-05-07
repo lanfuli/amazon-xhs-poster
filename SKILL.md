@@ -1,7 +1,7 @@
 ---
 name: amazon-xhs-poster
 description: Generate one Amazon-seller post tailored to a specific platform — Xiaohongshu (default, 6-9 cards), Lemon8 (6-10 cards), LinkedIn (long-form text, ≤3000 chars, 3-5 hashtags), X / Twitter (single tweet ≤280 chars OR thread of up to 25), or Instagram (1-10 carousel + ≤2200 char caption). Each platform has its own char limits, hashtag rules, card count range, and post.md output layout. Supports Chinese (default) or English output via config.output_language. Trigger when the user says "写小红书 amazon post / 亚马逊小红书 / amazon seller post / linkedin amazon post / x amazon thread / instagram amazon carousel" or asks for a platform-specific seller-audience post. Generates artifacts only; does NOT auto-publish unless the user explicitly enables a publish adapter in their config.
-version: 1.3.0
+version: 1.4.0
 ---
 
 # Amazon XHS Poster
@@ -208,6 +208,7 @@ amazon-xhs-poster/
 │   ├── voice-and-persona.md
 │   ├── customization.md
 │   ├── platforms.md            (per-platform limits + workflow)
+│   ├── gated-sources.md        (optional X/LinkedIn/wearesellers auto-fetch)
 │   └── publish-adapter.md
 ├── prompts/
 │   ├── research-stage.md
@@ -217,7 +218,8 @@ amazon-xhs-poster/
 │   ├── history.py              (called by init-day; safe to call alone)
 │   ├── validate.py             (Stage 3 gate; reads PLATFORM_PRESETS)
 │   ├── render.mjs              (Stage 3; skips when cards is empty)
-│   └── make-post-md.py         (Stage 5; per-platform output layout)
+│   ├── make-post-md.py         (Stage 5; per-platform output layout)
+│   └── fetch-gated.mjs         (optional Stage 1 helper; Playwright + persistent profile)
 └── examples/
     ├── post.example.json            (xiaohongshu / ZH canonical)
     ├── post-en.example.json         (xiaohongshu / EN)

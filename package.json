@@ -1,0 +1,16 @@
+{
+  "name": "amazon-xhs-poster",
+  "version": "1.4.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude Code skill: multi-platform Amazon-seller post generator with persistent-profile fetcher.",
+  "scripts": {
+    "fetch:setup": "node scripts/fetch-gated.mjs --setup",
+    "fetch": "node scripts/fetch-gated.mjs",
+    "render": "node scripts/render.mjs",
+    "test:node": "cd tests/node && npm test"
+  },
+  "dependencies": {
+    "playwright": "^1.58.0"
+  }
+}
