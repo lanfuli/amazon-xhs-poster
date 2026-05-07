@@ -30,7 +30,8 @@ since early 2026. It encodes:
 
 ```bash
 # 1. Clone (or unzip) into your Claude skills directory
-git clone <repo-url> ~/.claude/skills/amazon-xhs-poster
+git clone https://github.com/lanfuli/amazon-xhs-poster.git \
+  ~/.claude/skills/amazon-xhs-poster
 
 # 2. Install dependencies
 #    Requires: Python 3.9+, Node.js 18+

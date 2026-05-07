@@ -9,9 +9,9 @@
 > `post.json.qa_notes`.
 >
 > Two language tracks are provided: **ZH** (default, optimized for
-> Xiaohongshu native audience) and **EN** (for Lemon8 / Threads /
-> English-speaking creator platforms). Pick one via `config.output_language`
-> and align `config.title_constraints.must_contain` accordingly.
+> Xiaohongshu native audience) and **EN** (for Lemon8 / LinkedIn / X /
+> Instagram). Pick one via `config.output_language` and align
+> `config.title_constraints.must_contain` accordingly.
 
 ---
 

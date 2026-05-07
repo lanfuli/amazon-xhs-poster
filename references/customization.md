@@ -65,8 +65,8 @@ own example post in `examples/`:
 ## 3. Output language
 
 The skill ships with two language tracks: **ZH** (default, optimized for
-Xiaohongshu native audience) and **EN** (for Lemon8 / Threads /
-Instagram-equivalent / English-speaking creator platforms).
+Xiaohongshu native audience) and **EN** (for Lemon8 / LinkedIn / X /
+Instagram / English-speaking creator platforms).
 
 ```json
 "output_language": "zh"   // or "en"
