@@ -80,11 +80,12 @@
 
     "x": {
       "enabled": true,
+      "_handle_help": "X usernames are capped at 15 characters. 'MarketplacePulse' is 16 chars and does NOT exist; the real handle is 'MarketplacePuls' (no e). Verify any new handle you add against x.com directly before relying on it.",
       "handles": [
         { "handle": "AmazonNews",      "tier": "official" },
         { "handle": "SellingonAmazon", "tier": "official" },
         { "handle": "AmazonAds",       "tier": "official" },
-        { "handle": "MarketplacePulse","tier": "analyst" },
+        { "handle": "MarketplacePuls", "tier": "analyst" },
         { "handle": "juokaz",          "tier": "analyst" },
         { "handle": "retailgeek",      "tier": "analyst" },
         { "handle": "spencersoper",    "tier": "press" },

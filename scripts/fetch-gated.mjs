@@ -322,27 +322,37 @@ async function fetchX() {
       await sleep(2000);
 
       const tweets = await page.$$eval('article[data-testid="tweet"]', (nodes) => {
-        return nodes.slice(0, 8).map((node) => {
+        return nodes.slice(0, 12).map((node) => {
           const tEl = node.querySelector('time');
           const linkEl = tEl?.closest('a');
           const text = node.querySelector('[data-testid="tweetText"]')?.innerText?.trim() || '';
+          // Detect pinned tweet — its socialContext element typically reads
+          // "Pinned" / "已置顶". We don't filter it out (still useful), but
+          // tag it so age-based filtering doesn't reject it incorrectly.
+          const ctx = node.querySelector('[data-testid="socialContext"]')?.innerText?.trim() || '';
+          const isPinned = /pinned|置顶/i.test(ctx);
           return {
             ts: tEl?.getAttribute('datetime') || '',
             url: linkEl?.href || '',
             text: text.slice(0, 600),
+            isPinned,
           };
         });
       });
 
-      const recent = tweets.filter(t => t.text && (!t.ts || (Date.now() - new Date(t.ts).getTime()) / 36e5 <= 24));
+      // Take up to 5 tweets total. Don't reject by 24h cutoff (X profiles
+      // often have 1+ pinned old tweets; analysts may not post daily).
+      // Editorial stage decides what's relevant by glancing at timestamps.
+      const recent = tweets.filter(t => t.text).slice(0, 5);
       lines.push(`### @${handle} (${tier})`);
       if (!recent.length) {
-        lines.push(`_(no tweets in last ${lookbackHours}h)_`);
+        lines.push(`_(no tweets visible — check handle exists at https://x.com/${handle})_`);
         lines.push('');
       } else {
         for (const t of recent) {
           const tsHuman = t.ts ? new Date(t.ts).toISOString().slice(0, 16).replace('T', ' ') : '?';
-          lines.push(`- **${tsHuman}** — ${t.text.split('\n').slice(0, 4).join(' / ')}`);
+          const pin = t.isPinned ? ' (pinned)' : '';
+          lines.push(`- **${tsHuman}**${pin} — ${t.text.split('\n').slice(0, 4).join(' / ')}`);
           if (t.url) lines.push(`  ${t.url}`);
         }
         lines.push('');
@@ -441,15 +451,27 @@ async function fetchWearesellers() {
     await page.goto('https://www.wearesellers.com/', { waitUntil: 'domcontentloaded', timeout: 30000 });
     await sleep(2000);
 
-    const links = await page.$$eval('a[href*="/p/"], a[href*="/q/"], a[href*="/article/"]', (nodes) => {
-      return nodes.slice(0, 30).map((n) => ({
-        href: n.href,
-        text: n.innerText?.trim().slice(0, 160) || '',
-      })).filter(x => x.text && x.href.includes('wearesellers.com'));
-    });
+    // wearesellers has multiple URL patterns. Prefer /question/ (free Q&A
+    // with full body content). Skip /article/paid/ — those are paywalled
+    // even when logged in (subscription required for body), so we'd just
+    // get 5 titles with empty bodies.
+    const links = await page.$$eval(
+      'a[href*="/question/"], a[href*="/headline/"], a[href*="/article/"]',
+      (nodes) => {
+        return nodes.slice(0, 50).map((n) => ({
+          href: n.href,
+          text: n.innerText?.trim().slice(0, 160) || '',
+        }));
+      }
+    );
 
     const seen = new Set();
     const unique = links.filter(l => {
+      if (!l.href.includes('wearesellers.com')) return false;
+      // Skip paid articles — full body requires subscription.
+      if (/\/article\/paid\//.test(l.href)) return false;
+      // Skip pagination / category index pages without content.
+      if (/[?&]page=|\/category-/.test(l.href)) return false;
       if (seen.has(l.href)) return false;
       seen.add(l.href);
       return l.text.length >= 8;
