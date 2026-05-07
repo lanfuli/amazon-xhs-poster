@@ -1,0 +1,91 @@
+{
+  "_comment": "中文 LinkedIn 长文（无 carousel）。Set config.output_language='zh' and config.platform='linkedin'. 适合做跨境 B2B 受众的内容分发。Body ≤ 3000 字符；3-5 个 hashtag 放在文末；cards 必须为空。",
+
+  "version": "1.1",
+  "job_date": "2026-05-07",
+  "language": "zh",
+  "platform": "linkedin",
+
+  "persona": {
+    "identity": "美国西雅图 10 年亚马逊操盘手，目前管 8 位数私牌",
+    "brand_cn": "文森特",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "克制、节制、不卖鸡汤、像在带团队的实战操盘手",
+    "signature": "文森特"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "亚马逊在退货率高的产品详情页打 Frequently Returned 标签，转化率断崖式下跌 20-40%。多数 FBA 卖家不主动监控退货率阈值，等看到标签时已经损失数周转化。Prime Day 备战期是最后的修复窗口。",
+    "why_now": "Prime Day 2026 还有约 5 周。春促刚过，FBA 退货高峰可能已经把部分 SKU 的退货率推过品类阈值。",
+    "selection_reason": "risk-warning: 14d count=2, floor=2",
+    "sources": [
+      "https://sellercentral.amazon.com/help/hub/reference/external/G202175570",
+      "https://www.aboutamazon.com/news/retail"
+    ]
+  },
+
+  "seo": {
+    "primary_keywords": ["亚马逊退货率", "Frequently Returned", "Prime Day"],
+    "secondary_keywords": ["FBA 退货", "转化率"],
+    "hashtags": ["#亚马逊", "#FBA", "#PrimeDay", "#跨境电商"]
+  },
+
+  "strategy": {
+    "attention_goal": "前两行抓住 LinkedIn feed 注意力",
+    "psychology_hooks": ["loss-aversion", "credible-urgency", "operator-authority"],
+    "ai_positioning": "AI 只作为工作流杠杆出现，不把人设包装成 AI 产品。",
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "cards": 0,
+    "cards_min": 0,
+    "cards_max": 0,
+    "renders_cards": false,
+    "accent_strategy": "n/a-for-text-only"
+  },
+
+  "xhs": {
+    "title": "",
+    "title_max_length": 0,
+    "opening_hook": "你的亚马逊 Top SKU 可能已经被打了一个隐形标签，转化率掉 20-40%——但平台不会通知你。",
+    "content": "你的亚马逊 Top SKU 可能已经被打了一个隐形标签，转化率掉 20-40%——但平台不会通知你。\n\n这个标签叫 Frequently Returned。亚马逊在产品详情页直接显示给所有买家。一旦贴上，平台不会发任何通知；你不主动查后台，可能已经被标了好几周，广告费照烧但转化只剩一半。\n\n触发条件其实简单：\n• SKU 退货率高于品类平均\n• 退货原因集中在「与描述不符」或「质量问题」\n• 春促 / 大促期间非精准流量涌入，把退货率快速拉过阈值\n\n标签一旦贴上，需要持续多周低退货率才能摘掉。Prime Day 不会等你。\n\n这周该做的 3 件事，给做实物私牌的卖家：\n\n1. 后台拉 FBA 退货报告，逐 SKU 看退货率和退货原因 Top 3\n2. 退货率超均值的 SKU，先修详情页：实拍图、尺寸表、材质说明，让买家下单前就知道收到什么\n3. 持续无法改善的 SKU，Prime Day 前主动暂停广告或下架——别让大促把问题放大\n\n操盘的关键判断不是「再加把劲」——而是决定哪些 SKU 该停止投钱，在平台替你做决定之前。\n\n你团队的退货审计节奏是怎样的？\n\n#亚马逊 #FBA #PrimeDay #跨境电商",
+    "cta": "你团队的退货审计节奏是怎样的？",
+    "tags": ["亚马逊", "FBA", "PrimeDay", "跨境电商"],
+    "thread": [],
+    "append_hashtags_to_content": true,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-07",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-07/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-07/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-07/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-07/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "skipped-no-cards",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "中文 LinkedIn 长文 (~520 中文字符 + hashtag 块)",
+    "结构：1 句钩子 + 4 段证据 + 3 步行动清单 + 1 个反向 CTA 提问",
+    "card 6 不存在（LinkedIn 无卡片），但末句包含「关注」语义；EN cta_tokens 不直接适用，依赖 ZH 默认 (点赞/收藏/关注/评论/不迷路) 中『关注』通过 hashtag 块满足"
+  ],
+
+  "job_type": "daily"
+}

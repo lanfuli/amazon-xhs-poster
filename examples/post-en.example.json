@@ -56,7 +56,7 @@
   },
 
   "xhs": {
-    "title": "Amazon's silent badge",
+    "title": "Amazon silent badge",
     "title_pattern_id": "T1",
     "title_max_length": 20,
     "opening_hook": "Your Amazon listing might already have an invisible badge that's quietly killing your conversion.",

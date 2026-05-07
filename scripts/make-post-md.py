@@ -174,6 +174,37 @@ def render_long_form(post, hashtag_line, H, platform, job_date, timestamp):
     return lines
 
 
+def _x_weighted_length(text: str) -> int:
+    """Mirror of validate.py:x_weighted_length.
+
+    Weight 1: Latin + Latin Extended + IPA + Spacing Modifier +
+    Combining Diacritical + Cyrillic. Weight 2: everything else
+    (CJK, Hiragana, Katakana, Hangul, full-width punctuation, emoji).
+    """
+    weight = 0
+    for ch in text:
+        cp = ord(ch)
+        is_w1 = (
+            cp <= 0x00FF or
+            0x0100 <= cp <= 0x024F or
+            0x0250 <= cp <= 0x02AF or
+            0x02B0 <= cp <= 0x02FF or
+            0x0300 <= cp <= 0x036F or
+            0x0400 <= cp <= 0x052F
+        )
+        weight += 1 if is_w1 else 2
+    return weight
+
+
+def _len_label(text: str, platform: str) -> str:
+    raw = len(text)
+    if platform == "x":
+        weight = _x_weighted_length(text)
+        if weight != raw:
+            return f"{raw} chars / {weight} weight"
+    return f"{raw} chars"
+
+
 def render_thread(post, hashtag_line, H, platform, job_date, timestamp):
     """X / Twitter: render thread (if non-empty) or single body."""
     xhs = post.get("xhs") or {}
@@ -186,10 +217,10 @@ def render_thread(post, hashtag_line, H, platform, job_date, timestamp):
     if thread:
         for i, t in enumerate(thread, start=1):
             t_text = str(t or "").strip() or H["empty"]
-            lines += [f"**{H['tweet']} {i}/{len(thread)}** ({len(t_text)} chars)",
+            lines += [f"**{H['tweet']} {i}/{len(thread)}** ({_len_label(t_text, platform)})",
                       "", t_text, ""]
     else:
-        lines += [content or H["empty"], "", f"_(length: {len(content)} chars)_", ""]
+        lines += [content or H["empty"], "", f"_(length: {_len_label(content, platform)})_", ""]
     if hashtag_line:
         lines += [f"## {H['hashtags']}", "", hashtag_line, ""]
     lines += ["---", "", H["footer_per_platform"][platform].format(ts=timestamp), ""]

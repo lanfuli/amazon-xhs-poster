@@ -317,6 +317,11 @@ def hashtag_relevance_ratio(tags: list[str], post: dict) -> float:
         str(topic.get("category") or ""),
         str(topic.get("why_now") or ""),
         str(xhs.get("title") or ""),
+        # Include body + opening hook for text-only platforms (LinkedIn, X)
+        # where cards/title are empty — the body IS the post.
+        str(xhs.get("opening_hook") or ""),
+        str(xhs.get("content") or ""),
+        " ".join(str(t) for t in (xhs.get("thread") or [])),
         " ".join(str(c.get("headline") or "") for c in cards),
         " ".join(str(c.get("eyebrow") or "") for c in cards),
     ])
@@ -329,6 +334,46 @@ def hashtag_relevance_ratio(tags: list[str], post: dict) -> float:
         if tag_tokens & corpus_tokens:
             relevant += 1
     return relevant / len(tags)
+
+
+def x_weighted_length(text: str) -> int:
+    """X (Twitter) weighted length per twitter-text spec.
+
+    Weight 1 (basic Latin scripts and a few related ranges):
+      - Latin + Latin-1 Supplement (0000-00FF)
+      - Latin Extended-A / B (0100-024F)
+      - IPA Extensions (0250-02AF)
+      - Spacing Modifier Letters (02B0-02FF)
+      - Combining Diacritical Marks (0300-036F)
+      - Cyrillic + Cyrillic Supplement (0400-052F)
+
+    Weight 2: everything else, including CJK Unified Ideographs (4E00-9FFF),
+    Hiragana (3040-309F), Katakana (30A0-30FF), Hangul Syllables
+    (AC00-D7AF), full-width punctuation (FF00-FFEF), and emoji.
+
+    A 280-weight limit therefore allows ~280 ASCII chars, ~140 Chinese
+    chars, or any mix in between.
+    """
+    weight = 0
+    for ch in text:
+        cp = ord(ch)
+        is_weight_1 = (
+            cp <= 0x00FF or                 # Latin + Latin-1 Supplement
+            0x0100 <= cp <= 0x024F or       # Latin Extended-A / B
+            0x0250 <= cp <= 0x02AF or       # IPA Extensions
+            0x02B0 <= cp <= 0x02FF or       # Spacing Modifier Letters
+            0x0300 <= cp <= 0x036F or       # Combining Diacritical
+            0x0400 <= cp <= 0x052F          # Cyrillic + Cyrillic Supplement
+        )
+        weight += 1 if is_weight_1 else 2
+    return weight
+
+
+def platform_body_length(text: str, platform: str) -> int:
+    """Effective body length for the platform's character limit check."""
+    if platform == "x":
+        return x_weighted_length(text)
+    return len(text)
 
 
 def bullets_have_parallel_dimensions(bullets: list) -> bool:
@@ -450,12 +495,17 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
         )
 
     # Body cap (skipped if preset.body_max is None, e.g. xiaohongshu uses
-    # soft target rather than hard cap).
+    # soft target rather than hard cap). For X, CJK characters count as
+    # weight 2 toward the 280-char limit (twitter-text spec).
     if preset["body_max"] is not None:
-        if len(content) > preset["body_max"]:
+        eff_len = platform_body_length(content, platform)
+        if eff_len > preset["body_max"]:
+            note = ""
+            if platform == "x" and eff_len != len(content):
+                note = f" (CJK weighting: {len(content)} chars → {eff_len} weight)"
             errors.append(
                 f"xhs.content exceeds {preset['body_max']} characters "
-                f"(platform={platform!r}): {len(content)}"
+                f"(platform={platform!r}): {eff_len}{note}"
             )
 
     # Thread mode (X / Threads). Each post must respect body_max.
@@ -469,9 +519,13 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             )
         for i, item in enumerate(thread):
             t = str(item or "").strip()
-            if per_post_limit and len(t) > per_post_limit:
+            t_len = platform_body_length(t, platform)
+            if per_post_limit and t_len > per_post_limit:
+                note = ""
+                if platform == "x" and t_len != len(t):
+                    note = f" (CJK weighting: {len(t)} chars → {t_len} weight)"
                 errors.append(
-                    f"xhs.thread[{i}] exceeds {per_post_limit} characters: {len(t)}"
+                    f"xhs.thread[{i}] exceeds {per_post_limit} characters: {t_len}{note}"
                 )
     elif thread and not preset.get("supports_thread"):
         warnings.append(

@@ -177,9 +177,15 @@ Set `config.platform` to one of:
 | x            | post or thread    | (none)    | 280/post | 0–2       | 0     |
 | instagram    | carousel + caption| (none)    | 2200     | 5–30      | 1–10  |
 
-See [references/platforms.md](references/platforms.md) for full per-platform
-rules, post.json shape (especially `xhs.thread` for X), and cross-posting
-workflow.
+**Every platform supports both `output_language: "zh"` and `"en"`.** They
+are independent fields. So `language=zh + platform=linkedin` produces
+Chinese LinkedIn posts; `language=en + platform=x` produces English X
+threads. For X specifically, the validator applies CJK weighting (each
+Chinese char counts as 2 toward the 280 weight cap, per twitter-text spec).
+
+See [references/platforms.md](references/platforms.md) for the full
+language × platform matrix, post.json shape (especially `xhs.thread` for
+X), per-platform editorial guidance, and cross-posting workflow.
 
 ## Dependencies
 

@@ -1,0 +1,166 @@
+{
+  "_comment": "中文 Instagram carousel 示例。Set config.output_language='zh' and config.platform='instagram'. 1-10 张图卡 + ≤2200 字符 caption + 5-30 hashtags。比 XHS 卡片限更松（多到 10 张）但 caption 限制更严（XHS 软限~1000，IG 硬限 2200）。",
+
+  "version": "1.1",
+  "job_date": "2026-05-07",
+  "language": "zh",
+  "platform": "instagram",
+
+  "persona": {
+    "identity": "美国西雅图 10 年亚马逊操盘手",
+    "brand_cn": "文森特在美国",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "克制、节制、不卖鸡汤、像在带团队的实战操盘手",
+    "signature": "文森特在美国"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "亚马逊在退货率高的 SKU 详情页打 Frequently Returned 标签，转化率掉 20-40%。多数 FBA 卖家不主动监控就发现不了。Prime Day 前是最后修复窗口。",
+    "why_now": "Prime Day 2026 还有约 5 周；春促退货高峰刚过。",
+    "selection_reason": "risk-warning: 14d count=2",
+    "sources": [
+      "https://sellercentral.amazon.com/help/hub/reference/external/G202175570",
+      "https://www.aboutamazon.com/news/retail"
+    ]
+  },
+
+  "seo": {
+    "primary_keywords": ["亚马逊退货率", "Frequently Returned"],
+    "hashtags": [
+      "#亚马逊", "#亚马逊卖家", "#FBA", "#FBA退货",
+      "#退货率", "#PrimeDay", "#转化率", "#跨境电商", "#美国电商", "#私牌"
+    ]
+  },
+
+  "strategy": {
+    "attention_goal": "卡片 1 在 IG 网格视图里就能读懂",
+    "psychology_hooks": ["loss-aversion", "curiosity-gap", "operator-authority", "credible-urgency"],
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "ratio": "3:4",
+    "width": 1080,
+    "height": 1440,
+    "cards": 6,
+    "cards_min": 1,
+    "cards_max": 10,
+    "renders_cards": true,
+    "accent_strategy": "color-psychology"
+  },
+
+  "xhs": {
+    "title": "亚马逊隐形标签",
+    "title_max_length": 0,
+    "opening_hook": "你的亚马逊 Listing 可能已经被打了一个隐形标签——转化率掉 20-40%，但平台不会通知你。",
+    "content": "你的亚马逊 Listing 可能已经被打了一个隐形标签——转化率掉 20-40%，但平台不会通知你。\n\n这个标签叫 Frequently Returned。亚马逊在产品详情页直接显示给所有买家。一旦被标，平台不会通知你；你不主动查后台，可能已经被标了好几周。\n\n触发条件（左滑看完整拆解）：\n• SKU 退货率高于品类平均\n• 退货原因集中在「与描述不符」或「质量问题」\n• 大促期间非精准流量涌入，把退货率推过阈值\n\n标签一旦贴上，需要持续多周低退货率才能摘掉。Prime Day 不会等你。\n\n这周该做的 3 件事：\n\n1. 后台拉 FBA 退货报告，逐 SKU 看退货率和退货原因 Top 3\n2. 退货率超均值的 SKU，先修详情页（实拍图、尺寸表、材质）\n3. 持续无法改善的 SKU，Prime Day 前主动暂停广告或下架\n\n收藏这组卡片，下次运营会议拿出来对照。关注文森特在美国，提前看到正在伤害你转化率的隐性风险。\n\n#亚马逊 #亚马逊卖家 #FBA #FBA退货 #退货率 #PrimeDay #转化率 #跨境电商 #美国电商 #私牌",
+    "cta": "收藏这组卡片，下次运营会议拿出来对照。关注文森特在美国，提前看到正在伤害你转化率的隐性风险。",
+    "tags": [
+      "亚马逊", "亚马逊卖家", "FBA", "FBA退货",
+      "退货率", "PrimeDay", "转化率", "跨境电商", "美国电商", "私牌"
+    ],
+    "thread": [],
+    "append_hashtags_to_content": true,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [
+    {
+      "id": "card_01",
+      "kind": "hook",
+      "eyebrow": "2026.05  风险预警",
+      "headline": "你的 Listing 被亚马逊\n打了一个隐形标签",
+      "body": "Frequently Returned —— 亚马逊的隐形标签。\n\n它就挂在你的产品详情页上，所有买家都能看到。\n\n你可能被标了好几周，自己完全不知道。",
+      "bullets": [],
+      "footer": "文森特在美国"
+    },
+    {
+      "id": "card_02",
+      "kind": "tension",
+      "eyebrow": "这个标签有多疼",
+      "headline": "转化率直接掉 20-40%",
+      "body": "买家看到「Frequently Returned」，下一动作不是「我来试试」——是直接关页面。\n\n更狠的是：亚马逊不会通知你被标了。\n你不主动查，广告费可能已经白烧好几周。",
+      "bullets": [],
+      "footer": "文森特在美国"
+    },
+    {
+      "id": "card_03",
+      "kind": "framework",
+      "eyebrow": "触发逻辑",
+      "headline": "什么情况会被标",
+      "body": "亚马逊用品类级别的退货率基准线判断：",
+      "bullets": [
+        "你的 SKU 退货率 > 同品类平均退货率",
+        "退货原因集中在「与描述不符」或「质量问题」",
+        "大促期间非精准流量把退货率快速拉高",
+        "标签一旦触发，需要持续多周低退货率才能摘掉"
+      ],
+      "footer": "文森特在美国"
+    },
+    {
+      "id": "card_04",
+      "kind": "checklist",
+      "eyebrow": "今晚就做",
+      "headline": "3 步检查你的\n退货风险",
+      "body": "",
+      "bullets": [
+        "后台拉 FBA 退货报告，逐 SKU 看退货率 + 退货原因 Top 3",
+        "退货率偏高的 SKU → 优先修详情页：实拍图、尺寸表、材质说明",
+        "退货率极高且短期无法改善 → Prime Day 前主动暂停广告或下架"
+      ],
+      "footer": "文森特在美国"
+    },
+    {
+      "id": "card_05",
+      "kind": "ai-angle",
+      "eyebrow": "AI 提效",
+      "headline": "用 AI 监控退货率\n别等标签上了才发现",
+      "body": "手动拉报告每周一次都嫌累，但退货率每天都在变。",
+      "bullets": [
+        "AI agent 每日自动抓退货数据，接近品类阈值时立即预警",
+        "自动归类退货原因，识别高频关键词，生成详情页修改建议",
+        "大促前自动标记风险 SKU 名单，按退货率排序，决定先暂停哪些"
+      ],
+      "footer": "文森特在美国"
+    },
+    {
+      "id": "card_06",
+      "kind": "cta",
+      "eyebrow": "文森特在美国",
+      "headline": "Prime Day 前\n先检查你的退货率",
+      "body": "这个标签不会发通知，不会弹警告。\n它就安静地挂在你的 Listing 上，每天替你劝退买家。\n\nPrime Day 还有约 5 周。\n现在修，还来得及。\n\n→ 收藏这组卡片 · 关注文森特在美国",
+      "bullets": [],
+      "footer": "文森特在美国"
+    }
+  ],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-07",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-07/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-07/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-07/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-07/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "done",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "中文 IG: 6 卡 (可扩到 10), caption ~620 字符, 10 hashtag",
+    "card 6 含「收藏」「关注」满足 ZH cta_tokens",
+    "card 5 含决策动词「决定」「暂停」"
+  ],
+
+  "job_type": "daily"
+}

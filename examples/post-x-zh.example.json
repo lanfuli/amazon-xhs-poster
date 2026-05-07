@@ -1,0 +1,86 @@
+{
+  "_comment": "中文 X (Twitter) 线程示例。Set config.output_language='zh' and config.platform='x'. 每条线程 ≤ 280 weight；中日韩字符算 2 weight，所以中文实际限制是 ~140 个汉字。线程模式用 xhs.thread[]。最多 25 条；hashtag 0-2 个内联在最后一条。",
+
+  "version": "1.1",
+  "job_date": "2026-05-07",
+  "language": "zh",
+  "platform": "x",
+
+  "persona": {
+    "identity": "美国西雅图 10 年亚马逊操盘手",
+    "brand_cn": "文森特",
+    "location": "Seattle, WA",
+    "years_experience": 10,
+    "voice": "犀利、有数据、反共识、不绕弯",
+    "signature": "文森特"
+  },
+
+  "topic": {
+    "category": "risk-warning",
+    "angle": "亚马逊在退货率超阈值的 SKU 详情页打 Frequently Returned 标签，转化率掉 20-40%。FBA 卖家通常 3-4 周后才发现。Prime Day 前是最后修复窗口。",
+    "why_now": "Prime Day 2026 还有 5 周；春促退货高峰刚过。",
+    "selection_reason": "risk-warning: 14d count=2",
+    "sources": ["https://sellercentral.amazon.com/help/hub/reference/external/G202175570"]
+  },
+
+  "seo": {"hashtags": ["#亚马逊"]},
+
+  "strategy": {
+    "attention_goal": "首条钩子推文停止滚动",
+    "psychology_hooks": ["loss-aversion", "credible-urgency"],
+    "dedupe_window_days": 30
+  },
+
+  "design": {
+    "theme": "auto",
+    "style": "iphone-notes-editorial-v4",
+    "cards": 0, "cards_min": 0, "cards_max": 0,
+    "renders_cards": false,
+    "accent_strategy": "n/a-for-text-only"
+  },
+
+  "xhs": {
+    "title": "",
+    "opening_hook": "你的亚马逊 Top SKU 可能已经被打了隐形标签，转化率掉 20-40%。平台不会通知你。",
+    "content": "",
+    "thread": [
+      "你的亚马逊 Top SKU 可能已经被打了隐形标签，转化率掉 20-40%。平台不通知你。多数 FBA 卖家 3-4 周才发现，那时广告费早烧光，转化只剩一半。 🧵",
+      "这标签叫 Frequently Returned。亚马逊把它直接挂在产品详情页，所有买家点开都看见。看到这五个字，下一个动作不是「试试」——是关页面。",
+      "触发条件机械：SKU 退货率超品类均值，退货原因集中在「与描述不符」或「质量问题」，或者大促期间非精准流量涌入把退货率拉过线。春促和 Prime Day 是两大雷区。",
+      "标签一旦贴上，需要持续多周低退货率才能摘。Prime Day 2026 还有 5 周。如果某个 SKU 已经在临界，你既没时间修，也没时间证明修好了。大促会放大问题。",
+      "这周该做的：1) 拉 FBA 退货报告 2) 标红超品类均值的 SKU 3) 修详情页（实拍/尺寸/材质）4) 持续无法改善的 → Prime Day 前主动暂停广告或下架。",
+      "操盘判断不是「再加把劲」——是决定哪些 SKU 该停止投钱，在平台替你做决定之前。\n\n#亚马逊"
+    ],
+    "tags": ["亚马逊"],
+    "append_hashtags_to_content": false,
+    "schedule_at": "",
+    "delivery_mode": "manual"
+  },
+
+  "cards": [],
+
+  "paths": {
+    "job_dir": "<DRAFTS_ROOT>/2026-05-07",
+    "desktop_root": "",
+    "research_note": "<DRAFTS_ROOT>/2026-05-07/research/topic.md",
+    "post_json": "<DRAFTS_ROOT>/2026-05-07/post.json",
+    "render_manifest": "<DRAFTS_ROOT>/2026-05-07/cards/render_manifest.json",
+    "cards_dir": "<DRAFTS_ROOT>/2026-05-07/cards"
+  },
+
+  "status": {
+    "research": "complete",
+    "editorial": "complete",
+    "render": "skipped-no-cards",
+    "qa": "complete",
+    "publish": "manual"
+  },
+
+  "qa_notes": [
+    "6 条线程 (hook + 4 evidence/checklist + close)",
+    "每条 ≤ 280 weight (中文 ~140 字)，validator 会按 CJK 加权检查",
+    "末条含 #亚马逊 inline，append_hashtags_to_content=false（X 风格）"
+  ],
+
+  "job_type": "daily"
+}

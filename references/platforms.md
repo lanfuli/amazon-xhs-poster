@@ -5,6 +5,23 @@
 > below are platform-natural; tighten via `config.title_constraints` /
 > `config.cta_tokens` etc. as needed.
 
+## Language × Platform matrix
+
+`output_language` and `platform` are **independent**. Every combination
+works:
+
+|              | zh (Chinese)              | en (English)              |
+|--------------|---------------------------|---------------------------|
+| xiaohongshu  | ✓ default                 | ✓ EN-on-XHS (rare but works) |
+| lemon8       | ✓ ZH on Lemon8            | ✓ EN-Lemon8 (default for EN carousel) |
+| linkedin     | ✓ Chinese B2B / cross-border | ✓ Western B2B            |
+| x            | ✓ 中文推 (CJK weight × 2) | ✓ standard                |
+| instagram    | ✓ Chinese caption         | ✓ standard                |
+
+The matrix is full-coverage: pick whichever language + platform combination
+fits your audience. `make-post-md.py` reads both fields independently
+when emitting `post.md`.
+
 ## Quick reference
 
 | Platform     | Title cap | Body cap | Hashtags  | Cards   | Format             |
@@ -77,12 +94,39 @@ Single tweet OR a numbered thread. Pick by populating `xhs.content`
 (single) or `xhs.thread` (array).
 
 - No title
-- Single tweet: `xhs.content` ≤ 280 chars
-- Thread: `xhs.thread` array, each item ≤ 280 chars, max 25 posts
+- Single tweet: `xhs.content` ≤ 280 weight
+- Thread: `xhs.thread` array, each item ≤ 280 weight, max 25 posts
 - Hashtags: 0–2 (more than 2 measurably reduces reach on X)
 - Cards: 0
 - Output: `post.md` shows the thread broken into numbered tweets with
   per-tweet character counts, so you can paste each into X individually
+
+### Char counting — important for Chinese / Japanese / emoji
+
+X uses **weighted length**, not raw character count. Per
+[twitter-text spec](https://developer.twitter.com/en/docs/counting-characters):
+
+- **Weight 1**: Latin / Latin Extended / IPA / Cyrillic / spacing
+  modifier / combining diacritical (~Western scripts)
+- **Weight 2**: everything else — CJK Unified Ideographs (Chinese),
+  Hiragana / Katakana (Japanese), Hangul Syllables (Korean), full-width
+  punctuation, and emoji
+
+So a 280-weight tweet = roughly:
+- 280 ASCII chars, **or**
+- 140 Chinese / Japanese / Korean chars, **or**
+- some mix in between
+
+The validator computes weighted length for X automatically. If your
+tweet exceeds 280 weight, the error message shows both raw chars and
+weight: `xhs.thread[2] exceeds 280 characters: 312 (CJK weighting: 175 chars → 312 weight)`.
+
+`post.md` for X shows weight side-by-side with raw chars on each tweet:
+`**推文 1/6** (82 chars / 133 weight)` — so when you paste each tweet
+into X manually you can verify it's still under 280 weight.
+
+Other platforms (LinkedIn / Lemon8 / Instagram) use raw character count;
+only X applies CJK weighting.
 
 **Editorial note**: thread mode works best for sequential reasoning (1
 hook tweet + 4–6 evidence/example tweets + 1 CTA tweet). Single-tweet
@@ -164,6 +208,24 @@ python3 scripts/make-post-md.py drafts/2026-05-07/post.json --platform x --outpu
 
 The validator won't complain about cross-platform `post.json` shapes as
 long as you re-validate against the target platform's config.
+
+## Examples per platform-language combo
+
+The skill ships canonical examples for every language-platform pair:
+
+| File                                       | Language | Platform     |
+|--------------------------------------------|----------|--------------|
+| `examples/post.example.json`               | zh       | xiaohongshu  |
+| `examples/post-en.example.json`            | en       | xiaohongshu (works for lemon8 too) |
+| `examples/post-linkedin.example.json`      | en       | linkedin     |
+| `examples/post-linkedin-zh.example.json`   | zh       | linkedin     |
+| `examples/post-x.example.json`             | en       | x            |
+| `examples/post-x-zh.example.json`          | zh       | x            |
+| `examples/post-instagram.example.json`     | en       | instagram    |
+| `examples/post-instagram-zh.example.json`  | zh       | instagram    |
+
+Copy the closest match and edit. The structure is the same across
+languages within a platform; only the strings change.
 
 ## Adding a new platform
 

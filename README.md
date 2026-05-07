@@ -18,6 +18,11 @@ since early 2026. It encodes:
   feed names from leaking into public copy
 - Apple-Notes-inspired editorial card design with theme-tinted color
   psychology (one accent color per content category)
+- 5 target platforms (Xiaohongshu / Lemon8 / LinkedIn / X / Instagram)
+  with platform-native char limits, hashtag rules, and post.md output
+  layouts; X applies CJK weighting per twitter-text spec
+- Both Chinese (中文) and English fully supported on every platform —
+  pick any combination of `output_language` + `platform`
 
 ## Install
 
