@@ -4,6 +4,25 @@ All notable changes to this project are documented here. Format inspired
 by [Keep a Changelog](https://keepachangelog.com/); the project follows
 [Semantic Versioning](https://semver.org/) where reasonable.
 
+## [v1.4.1] — 2026-05-07
+
+Doc-only patch.
+
+### Fixed
+
+- `references/editorial-sop.md` — corrected `amz123.com` URL pattern.
+  v1.3.1 listed `https://www.amz123.com/t/...` as the cross-border
+  headlines URL, but `/t/<slug>` is actually the URL pattern for
+  *individual* articles. The list page is `/t` (no slug). Also added
+  `/amazon/news` as the Amazon-specific subsection. Both confirmed
+  PUBLIC (no login required) via WebFetch with dated 2026-05-07
+  content visible.
+
+This is the second time a source URL was misclassified during
+ladder audits. Future source-ladder verification: each URL gets
+its own WebFetch probe — homepage accessibility doesn't imply
+arbitrary path accessibility.
+
 ## [v1.4.0] — 2026-05-07
 
 Optional gated-source automation: pull research signal from X / LinkedIn /
@@ -195,6 +214,7 @@ Initial public release. Single platform (Xiaohongshu), Chinese-first.
 - Generate-only by default; opt-in `publish_adapter` hook for those
   who genuinely want to automate publishing.
 
+[v1.4.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.0...main
 [v1.4.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.1...v1.4.0
 [v1.3.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/lanfuli/amazon-xhs-poster/releases/tag/v1.3.0

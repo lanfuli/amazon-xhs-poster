@@ -124,8 +124,12 @@ in America/Los_Angeles.
      titles + metadata, but full discussion bodies require login. Use
      `scripts/fetch-gated.mjs` (Tier C automation, see below) or paste
      manually after logging in via your browser.
-   - `https://www.amz123.com/t/...` — PUBLIC. Specific topic pages work,
-     homepage is just a portal index.
+   - `https://www.amz123.com/t` — PUBLIC. 跨境头条 (cross-border
+     headlines) list page; dated articles, no login required. NOTE:
+     the pattern `/t/<slug>` is for individual articles
+     (e.g. `/t/XcuJgR4l`); the list page itself is `/t` with no slug.
+   - `https://www.amz123.com/amazon/news` — PUBLIC. Amazon-specific
+     platform news subsection (平台资讯), dated. Same access semantics.
    - `https://www.billiondollarsellers.com/archive` — GATED (paywall;
      headlines visible but full articles require subscription).
    - PPC Land / Marketplace Pulse / Modern Retail / SmartScout / Jungle
