@@ -71,7 +71,16 @@ function resolveConfigPath() {
 
 const cfgPath = resolveConfigPath();
 if (!cfgPath || !fsSync.existsSync(cfgPath)) {
-  console.error('config.json not found. Set --config <path> or XHS_AMAZON_CONFIG env var.');
+  const defaultLocation = expandHome('~/.config/amazon-xhs-poster/config.json');
+  console.error('config.json not found.');
+  console.error('');
+  console.error('First-time setup (run from skill root):');
+  console.error('  mkdir -p ~/.config/amazon-xhs-poster');
+  console.error('  cp config.example.json ~/.config/amazon-xhs-poster/config.json');
+  console.error('  $EDITOR ~/.config/amazon-xhs-poster/config.json   # fill in persona, paths, set gated_sources.enabled=true');
+  console.error('');
+  console.error(`Default config path: ${defaultLocation}`);
+  console.error('Override via --config <path> or XHS_AMAZON_CONFIG env var.');
   process.exit(1);
 }
 const config = JSON.parse(fsSync.readFileSync(cfgPath, 'utf8'));

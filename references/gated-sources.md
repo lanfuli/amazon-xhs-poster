@@ -59,6 +59,17 @@ npx playwright install chromium      # downloads the chromium browser binary
 
 ### 2. Enable in config.json
 
+If you haven't already created your `config.json` (skipped during the
+main install), do that first:
+
+```bash
+mkdir -p ~/.config/amazon-xhs-poster
+cp config.example.json ~/.config/amazon-xhs-poster/config.json
+$EDITOR ~/.config/amazon-xhs-poster/config.json
+```
+
+Then within the config file:
+
 ```jsonc
 {
   "gated_sources": {
