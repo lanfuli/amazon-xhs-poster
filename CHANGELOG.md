@@ -36,6 +36,53 @@ by [Keep a Changelog](https://keepachangelog.com/); the project follows
   your real Chrome.
 - The persistent-profile flow (Option A) is still the default.
 
+## [v1.5.0] — 2026-05-07
+
+Strict source-ladder audit + Tier-based reorganization.
+
+### Changed
+
+- **Every URL in `references/editorial-sop.md` source ladder retested
+  individually via WebFetch.** Each source is now classified by what
+  you actually get from it:
+  - **Tier A** (✅): dated content, public, automation-ready —
+    SP-API release notes, Walmart Marketplace release notes, amz123/t,
+    helium10 podcast.
+  - **Tier B** (🟡): real content but listing pages don't show dates,
+    use page order as recency proxy — aboutamazon.com news/retail and
+    news/policy-news-views, advertising.amazon.com/library/newsroom
+    and /blog, buywithprime.amazon.com/blog (sparse updates).
+  - **Tier C** (🚧): gated, login required — wearesellers (handled by
+    fetch-gated.mjs), billiondollarsellers (paywall body but public
+    headlines), Seller Central forums.
+  - **Tier D** (❌): explicitly listed DEAD — `advertising.amazon.com/library`
+    (404), `developer.amazonservices.com/release-notes` (moved),
+    `brandservices.amazon.com/blog` (redirects to marketing),
+    `marketplace.walmart.com/blog` (404), `marketplace-help.walmart.com`
+    (DNS), `corporate.walmart.com/news` (JS-rendered, scraper-blind),
+    `walmartconnect.com/insights` (only stale 2025 case studies).
+- Doug McMillon removed from default LinkedIn watchlist (consistently
+  empty — he doesn't post on LinkedIn). Profile count reduced 7 → 6.
+
+### Why retesting was needed
+
+User flagged that prior audits accepted homepage-loads-OK as proof of
+"working", but didn't verify dated-content visibility. Strict pass
+revealed:
+- 5 of 8 Amazon official URLs lack listing-page dates (still useful
+  but you can't filter by recency programmatically — need to crawl
+  each article).
+- 3 of 4 Walmart URLs are dead or stale; only marketplacelearn works.
+- The "is this URL useful for daily automated fetching" answer is
+  different from "does the URL respond 200 OK".
+
+### Self-correction
+
+Two prior errors traced back to the same root: I declared sources
+"WORKS PUBLICLY" without verifying dated content. Going forward, every
+default URL gets the strict test (quote 3 most recent dated headlines
+or admit it's missing) before being added to the SOP.
+
 ## [v1.4.1] — 2026-05-07
 
 Doc-only patch.
@@ -246,7 +293,8 @@ Initial public release. Single platform (Xiaohongshu), Chinese-first.
 - Generate-only by default; opt-in `publish_adapter` hook for those
   who genuinely want to automate publishing.
 
-[v1.4.2]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.1...main
+[v1.5.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.0...main
+[v1.4.2]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.1...v1.4.2
 [v1.4.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.1...v1.4.0
 [v1.3.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.0...v1.3.1

@@ -59,115 +59,135 @@ in America/Los_Angeles.
    takeaway.
 4. Drop 2-5 real `https://` URLs into `topic.md` Sources block. Slug stubs
    and human-readable IDs fail validation.
-5. **Source ladder** — sources are tagged by access type. PUBLIC sources
-   can be fetched by any tool (curl, WebFetch, etc.). GATED sources need a
-   logged-in human researcher (no automation). DEAD sources used to work
-   but no longer do — listed here so previous SOPs aren't followed blindly.
+5. **Source ladder** — every URL was strict-tested 2026-05-07. Each entry
+   labeled by what you actually get from it: ✅ dates+content (best),
+   🟡 content-but-no-listing-dates (use page order as recency), 🚧 gated
+   (need login or paid subscription), ❌ dead (do not use).
 
-   ### Tier A — Amazon official (PUBLIC, automation-friendly)
+   ### Tier A — ✅ Date-stamped, public, automation-friendly
 
-   These return real dated content with no login. Verified 2026-05-07.
-   - `https://www.aboutamazon.com/news/retail` — platform / strategy
-   - `https://www.aboutamazon.com/news/policy-news-views` — policy
-   - `https://advertising.amazon.com/library/newsroom` — Amazon Ads
-     announcements (replaces the old `advertising.amazon.com/library` 404)
-   - `https://advertising.amazon.com/resources/whats-new` — Ads what's new
-   - `https://developer-docs.amazon.com/sp-api/docs/sp-api-release-notes` —
-     SP-API release notes (replaces the old `developer.amazonservices.com`)
-   - `https://buywithprime.amazon.com/blog` — Buy with Prime updates
-     (note: the old `buywithprime.com/blog` 301-redirects here)
+   These are the spine. Listing pages show real dates, no login, ready
+   for automated daily fetch. Strict-tested.
 
-   ### Tier B — Walmart official (PUBLIC, partially)
+   - `https://developer-docs.amazon.com/sp-api/docs/sp-api-release-notes`
+     SP-API release notes. Verified May 2026: dated entries Apr 29 /
+     Apr 1 / Feb 23. Public.
+   - `https://marketplacelearn.walmart.com/releasenotes`
+     Walmart Marketplace release notes. Verified: May 7 / May 7 / May 4.
+     Replaces dead `marketplace.walmart.com/blog`.
+   - `https://www.amz123.com/t` (and `/amazon/news` subsection)
+     Cross-border headlines (China-facing). Verified: May 7 17:42 /
+     17:13 / 17:04. Public, dated to the minute.
+     NOTE: `/t/<slug>` (e.g. `/t/XcuJgR4l`) is INDIVIDUAL article URL,
+     not the list. List = `/t` with no suffix.
+   - `https://www.helium10.com/category/podcast/`
+     Helium 10 / Serious Sellers Podcast. Verified: latest #746 May
+     2026 / #745 Apr 27 / #744 Apr 20.
 
-   - `https://marketplacelearn.walmart.com/releasenotes` — Walmart
-     Marketplace release notes, dated, frequently updated (replaces dead
-     `marketplace.walmart.com/blog` and `marketplace-help.walmart.com`)
-   - `https://corporate.walmart.com/news` — Walmart leadership /
-     strategy news. Page works but article list is JS-rendered;
-     individual article URLs are direct-readable.
-   - `https://www.walmartconnect.com/insights` — Walmart Connect ads
-     content. Real, but mostly case studies (not real-time insights).
+   ### Tier B — 🟡 Real content, but listing pages don't show dates
 
-   ### Tier C — Operator + analyst signal (GATED for automation)
+   Page works, articles are real, but you can't filter by recency from
+   the listing alone — order on the page is the only signal. For
+   automated daily use, treat the top N items as "most recent N" and
+   trust the page sort.
 
-   These are valuable signals but require a logged-in browser session.
-   The validator can't auto-fetch them; they're inputs for a human or
-   logged-in agent reading and pasting summaries into `topic.md`.
+   - `https://www.aboutamazon.com/news/retail`
+     Amazon retail / platform / strategy news. ~469 articles. No
+     listing-page dates; click into each for publish timestamp.
+   - `https://www.aboutamazon.com/news/policy-news-views`
+     Amazon policy news. ~105 articles. Same pattern.
+   - `https://advertising.amazon.com/library/newsroom`
+     Amazon Ads announcements. (Replaces dead
+     `advertising.amazon.com/library`.) Hub-style.
+   - `https://advertising.amazon.com/blog`
+     Same content surface as newsroom — hub-style with no individual
+     post dates.
+   - `https://buywithprime.amazon.com/blog`
+     Real blog with dates per post BUT update frequency is low (latest
+     post Feb 4 2026 as of audit). Use as supplementary, not daily.
+     (Old `buywithprime.com/blog` 301-redirects here.)
 
-   - **LinkedIn watchlist** (login required for posts; profiles are
-     visible without login but post content is partially gated):
-     - Amazon: Andy Jassy (CEO), Doug Herrington (CEO Worldwide Stores),
-       Adam Selipsky (advisor), Dharmesh Mehta (VP Worldwide Selling
-       Partner Services)
-     - Walmart: Doug McMillon (CEO), Casey Carl (CSDO), Whitney Cleary
-       (Marketplace lead)
-     - Analysts / press: Juozas Kaziukėnas (Marketplace Pulse),
-       Krystina Gustafson (Modern Retail), Jason Goldberg (Publicis
-       Retail Geek), Andrea Leigh (Allume Group), Rachel Tipograph (MikMak)
-     - Search filters: Posts past 24h, language EN, sorted by Recent.
+   ### Tier C — 🚧 Gated (need login or subscription)
 
-   - **X (Twitter) watchlist** — useful but X has aggressive
-     anti-scraping (HTTP 402 / 429 to most automation). Treat as human-
-     research signal, not automation:
-     - Amazon official: `@AmazonNews`, `@SellingonAmazon`, `@AmazonAds`
-     - Analyst signal: `@MarketplacePulse`, `@juokaz` (Juozas
-       Kaziukėnas), `@retailgeek` (Jason Goldberg)
-     - Reporters covering Amazon: `@spencersoper` (Bloomberg)
-     - Practitioner / community: `@BradleyASutton` (Helium 10),
-       `@AmazonASGTG` (third-party seller community)
+   These have substantive value but require a logged-in browser
+   session. For automation, use `scripts/fetch-gated.mjs` (Playwright
+   with persistent profile). For manual use, log into your daily
+   browser, navigate, copy relevant items into `research/topic.md`.
 
-   ### Tier D — Specialist supplemental (mixed access)
+   - **X / Twitter watchlist** (anti-scraping HTTP 402 — automation
+     via the gated-sources fetcher only):
+     - Amazon official: `@AmazonNews`, `@AmazonAds`
+     - Community: `@AmazonASGTG`
+     - Analysts: `@MarketplacePuls` (NOT MarketplacePulse — that
+       handle exceeds X's 15-char username limit and doesn't exist),
+       `@juokaz`, `@retailgeek`
+     - Press: `@spencersoper` (Bloomberg)
+   - **LinkedIn watchlist** (login required):
+     - Amazon: Andy Jassy (`andy-jassy-8b1615`), Doug Herrington
+       (`doug-herrington`), Dharmesh Mehta (`dharmeshmmehta` —
+       NOTE the double 'm', single 'm' goes to a different person),
+       Steve Pope (`steven-pope` — My Amazon Guy CEO),
+       Bradley Sutton (`h10bradley` — Helium 10)
+     - Analysts: Juozas Kaziukenas (`juozas` — note: not the same as
+       his X handle `juokaz`)
+   - `https://www.wearesellers.com/`
+     Chinese seller community (知无不言). Homepage shows titles +
+     metadata; full discussion bodies require login. The fetch-gated
+     script handles this end-to-end (filters out paid bounty posts,
+     extracts question + answer body via `.mod-body` class).
+   - `https://www.billiondollarsellers.com/archive`
+     Top-operator newsletter. Headlines + dates publicly visible
+     (verified May 7 / May 4 / Apr 30 2026), but full article body
+     requires paid subscription. Use as topic-of-the-week signal.
+   - `https://sellercentral.amazon.com/forums/c/news-and-announcements`
+     Amazon Seller Central forums. Login required. Useful when you're
+     researching a specific seller-side issue, less useful for daily
+     automated harvest.
 
-   - `https://www.helium10.com/category/podcast/` — PUBLIC. Operator
-     interviews and tactical case studies; episode list dated.
-   - `https://www.wearesellers.com/` — **GATED**. Homepage shows post
-     titles + metadata, but full discussion bodies require login. Use
-     `scripts/fetch-gated.mjs` (Tier C automation, see below) or paste
-     manually after logging in via your browser.
-   - `https://www.amz123.com/t` — PUBLIC. 跨境头条 (cross-border
-     headlines) list page; dated articles, no login required. NOTE:
-     the pattern `/t/<slug>` is for individual articles
-     (e.g. `/t/XcuJgR4l`); the list page itself is `/t` with no slug.
-   - `https://www.amz123.com/amazon/news` — PUBLIC. Amazon-specific
-     platform news subsection (平台资讯), dated. Same access semantics.
-   - `https://www.billiondollarsellers.com/archive` — GATED (paywall;
-     headlines visible but full articles require subscription).
-   - PPC Land / Marketplace Pulse / Modern Retail / SmartScout / Jungle
-     Scout — used only when the topic genuinely needs them; label as
-     supplemental, not primary.
+   ### Tier D — ❌ DEAD / removed (do NOT use)
+
+   These appeared in v1.0 / v1.3 SOPs but were strict-tested as broken.
+   Listed here so future contributors don't re-add them.
+
+   - `https://advertising.amazon.com/library` — 404. Replaced by
+     `/library/newsroom`.
+   - `https://developer.amazonservices.com/release-notes` — moved to
+     `developer-docs.amazon.com/sp-api/docs/sp-api-release-notes`.
+   - `https://brandservices.amazon.com/blog` — 301-redirects to
+     marketing landing page (`sell.amazon.com/brand-registry`); no
+     longer a news source. Brand Registry / Project Zero / IP news is
+     announced in `aboutamazon.com/news/policy-news-views` instead.
+   - `https://marketplace.walmart.com/blog` — 404. Walmart Marketplace
+     news lives at `marketplacelearn.walmart.com/releasenotes`.
+   - `https://marketplace-help.walmart.com` — DNS / connection
+     refused. No replacement; Walmart help content is at
+     `marketplacelearn.walmart.com`.
+   - `https://corporate.walmart.com/news` — JavaScript-rendered
+     listing; HTML scrapers see only navigation chrome. Individual
+     article URLs (e.g. `/news/2026/04/23/walmart-releases-2026-annual-report`)
+     work, but discoverability is broken. Skip the listing; if you
+     want Walmart corporate news, use Google search instead.
+   - `https://www.walmartconnect.com/insights` — only stale 2025
+     case studies, not real-time insights. Drop unless you want
+     long-form case study material specifically.
+
+   The validator hard-fails if `topic.sources[]` contains a slug stub
+   or non-`https://` value. Use Tier A / B URLs above for that field.
 
    ### Optional automation: `scripts/fetch-gated.mjs`
 
-   For users who want gated-source signal automated, the skill ships
-   `fetch-gated.mjs` — a Playwright script with persistent profile that
-   fetches X / LinkedIn / wearesellers content using your own browser
-   session. **Read [`gated-sources.md`](gated-sources.md) before
-   enabling**: there's a real ToS / account-suspension risk with
-   automating logged-in services. It's optional and disabled by default.
+   For Tier C sources, the skill ships `fetch-gated.mjs` — a Playwright
+   script with persistent profile that fetches X / LinkedIn /
+   wearesellers content via your own browser session. Read
+   [`gated-sources.md`](gated-sources.md) before enabling — real ToS /
+   account-suspension risk for automating logged-in services. Optional,
+   disabled by default.
 
    ### Tier E — Audience signal only (NEVER copy verbatim)
 
-   - Xiaohongshu seller community — used to calibrate packaging,
-     audience language, and search phrasing.
+   - Xiaohongshu seller community — packaging, audience language,
+     search phrasing only. Not a content source.
    - Reddit r/AmazonSeller / r/FulfillmentByAmazon — same role.
-
-   ### DEAD URLs (do NOT include in `topic.sources`; they 404 / require login)
-
-   These were in earlier versions of this SOP and are no longer valid:
-   - `https://sellercentral.amazon.com/forums/c/news-and-announcements`
-     (login required as of 2026)
-   - `https://advertising.amazon.com/library` (404; use
-     `/library/newsroom` instead)
-   - `https://developer.amazonservices.com/release-notes` (moved; use
-     `developer-docs.amazon.com/sp-api/docs/sp-api-release-notes`)
-   - `https://brandservices.amazon.com/blog` (redirects to a marketing
-     landing page; no longer a news source)
-   - `https://marketplace.walmart.com/blog` (404; use
-     `marketplacelearn.walmart.com/releasenotes` instead)
-   - `https://marketplace-help.walmart.com` (DNS / connection refused)
-
-   The validator hard-fails if `topic.sources[]` contains a slug stub or
-   non-`https://` value. Real, working URLs only.
 
 6. Black-hat topics → frame as risk / detection / enforcement / lessons
    learned. Never write step-by-step abusive SOPs.
