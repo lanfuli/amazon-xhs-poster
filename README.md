@@ -1,5 +1,7 @@
 # amazon-xhs-poster
 
+[![CI](https://github.com/lanfuli/amazon-xhs-poster/actions/workflows/ci.yml/badge.svg)](https://github.com/lanfuli/amazon-xhs-poster/actions/workflows/ci.yml)
+
 A Claude Code skill that turns daily Amazon-seller commentary into a
 ready-to-post Xiaohongshu (小红书) carousel: 6–9 deterministic image cards
 plus a markdown file with the title, body, and hashtag block. You upload
@@ -173,6 +175,23 @@ you're over-indexing on that category.
 **"hashtag relevance too low"** — your hashtags don't share enough tokens
 with the post's title / topic / first 3 card headlines. Trim broad-SEO
 tags and add topic-specific ones.
+
+## Running tests
+
+```bash
+# Python (53 tests covering validate / init-day / make-post-md / history)
+pip3 install pytest
+pytest tests/python/ -v
+
+# Node (6 tests covering render.mjs empty-cards path + validation gate)
+cd tests/node && npm install && npm test
+```
+
+GitHub Actions runs both suites on every push to `main` and every PR.
+Real PNG rendering (which needs Chromium) is not in CI — it's exercised
+via the manual end-to-end smoke tests in the `examples/` flow. The unit
+tests cover everything else: validator rules, skeleton creation, post.md
+output formatting, history dedup, manifest shape.
 
 ## License
 
