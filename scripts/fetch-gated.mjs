@@ -398,13 +398,41 @@ async function fetchLinkedIn() {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await sleep(3000); // LinkedIn is heavy
 
-      const posts = await page.$$eval('div.feed-shared-update-v2, [data-urn^="urn:li:activity:"]', (nodes) => {
-        return nodes.slice(0, 5).map((node) => {
-          const text = node.innerText?.trim() || '';
-          const link = node.querySelector('a[href*="/posts/"], a[href*="/pulse/"]')?.href || '';
-          return { text: text.slice(0, 500), url: link };
-        });
-      });
+      const posts = await page.$$eval(
+        'div.feed-shared-update-v2, [data-urn^="urn:li:activity:"]',
+        (nodes) => {
+          // LinkedIn renders post containers with screen-reader labels like
+          // "Feed post number 1" inside hidden visually-hidden spans. Naïve
+          // innerText on the container picks those up. Look INSIDE for the
+          // actual post commentary text via LinkedIn's content classes.
+          const contentSelectors = [
+            '.update-components-text',
+            '.feed-shared-text__text-view',
+            '.feed-shared-update-v2__commentary',
+            '[data-test-id="main-feed-activity-card__commentary"]',
+            '.feed-shared-text',
+          ];
+          return nodes.slice(0, 5).map((node) => {
+            let text = '';
+            for (const sel of contentSelectors) {
+              const el = node.querySelector(sel);
+              if (el && el.innerText?.trim()) {
+                text = el.innerText.trim();
+                break;
+              }
+            }
+            // If nothing matched, fall back to innerText but strip the
+            // common screen-reader prefixes we know about.
+            if (!text) {
+              text = (node.innerText || '').trim()
+                .replace(/^(Feed post number \d+\s*\/\s*[^/]+\s*\/\s*)+/i, '')
+                .replace(/\b\w+\s+(?:reposted this|liked this|commented on this)\s*/gi, '');
+            }
+            const link = node.querySelector('a[href*="/posts/"], a[href*="/pulse/"]')?.href || '';
+            return { text: text.slice(0, 500), url: link };
+          });
+        }
+      );
 
       lines.push(`### ${name}`);
       if (!posts.length) {
@@ -465,16 +493,34 @@ async function fetchWearesellers() {
       }
     );
 
+    // Dedupe by canonical question/article ID — wearesellers homepage links
+    // include many anchors to the same thread (one per recent reply). We
+    // want one link per *thread*, normalized to its base URL.
+    const canonicalKey = (href) => {
+      const m = href.match(/wearesellers\.com\/(question|article|headline)\/([^/?#]+)/);
+      return m ? `${m[1]}/${m[2]}` : href;
+    };
+    // Also reject anchor texts that look like usernames (no Chinese chars,
+    // short ASCII-only) — those happen when the homepage links author
+    // names from question metadata.
+    const looksLikeUsername = (text) => {
+      if (text.length > 30) return false;
+      if (/[一-鿿]/.test(text)) return false; // contains Chinese, fine
+      if (/^[a-zA-Z0-9_]+$/.test(text)) return true;  // pure handle-like
+      return false;
+    };
+
     const seen = new Set();
     const unique = links.filter(l => {
       if (!l.href.includes('wearesellers.com')) return false;
-      // Skip paid articles — full body requires subscription.
       if (/\/article\/paid\//.test(l.href)) return false;
-      // Skip pagination / category index pages without content.
       if (/[?&]page=|\/category-/.test(l.href)) return false;
-      if (seen.has(l.href)) return false;
-      seen.add(l.href);
-      return l.text.length >= 8;
+      if (l.text.length < 12) return false;
+      if (looksLikeUsername(l.text)) return false;
+      const key = canonicalKey(l.href);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     }).slice(0, topN);
 
     if (!unique.length) {
@@ -482,12 +528,41 @@ async function fetchWearesellers() {
     } else {
       for (const link of unique) {
         try {
-          await page.goto(link.href, { waitUntil: 'domcontentloaded', timeout: 20000 });
+          // Strip the query string so we hit the canonical thread URL.
+          const cleanUrl = link.href.split('?')[0].split('#')[0];
+          await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
           await sleep(1500);
-          const body = await page.$eval('article, .post-content, .article-content, main', el => el.innerText?.trim().slice(0, 800)).catch(() => '');
+          // wearesellers uses class names like .question-content, .answer-content,
+          // .article-detail. Try a list of selectors and concatenate visible
+          // text from the question + first-best answer.
+          const body = await page.evaluate(() => {
+            const sels = [
+              '.question-detail',
+              '.question-content',
+              '.article-content',
+              '.article-detail',
+              '.post-content',
+              '.aw-mod-body',  // legacy WeCenter forum class
+              'article',
+            ];
+            let chunks = [];
+            for (const s of sels) {
+              document.querySelectorAll(s).forEach(el => {
+                const txt = el.innerText?.trim();
+                if (txt && txt.length > 30) chunks.push(txt);
+              });
+              if (chunks.length) break; // first matching class is enough
+            }
+            return chunks.join('\n\n').slice(0, 800);
+          }).catch(() => '');
           lines.push(`- **${link.text}**`);
-          lines.push(`  ${link.href}`);
-          if (body) lines.push(`  ${body.split('\n').slice(0, 6).join(' / ')}`);
+          lines.push(`  ${cleanUrl}`);
+          if (body) {
+            const summary = body.split('\n').filter(l => l.trim()).slice(0, 5).join(' / ');
+            lines.push(`  ${summary}`);
+          } else {
+            lines.push(`  _(body not extracted — DOM selector mismatch or login required)_`);
+          }
           lines.push('');
         } catch (err) {
           lines.push(`- **${link.text}** — _⚠ ${err.message?.slice(0, 100)}_`);
