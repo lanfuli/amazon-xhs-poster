@@ -50,7 +50,10 @@ const DATE_OVERRIDE = opt('--date');
 const CONFIG_PATH_OVERRIDE = opt('--config');
 const DRY_RUN = flag('--dry-run');
 const CONNECT_CDP = flag('--connect-cdp');
-const CDP_URL = opt('--connect-cdp') || 'http://localhost:9222';
+// Default to 127.0.0.1 (IPv4) NOT localhost — on macOS localhost resolves
+// to ::1 (IPv6) but Chrome's --remote-debugging-port only binds IPv4, so
+// connecting via localhost gives ECONNREFUSED ::1:9222.
+const CDP_URL = opt('--connect-cdp') || 'http://127.0.0.1:9222';
 
 if (flag('-h') || flag('--help')) {
   console.log(`fetch-gated.mjs — fetch X / LinkedIn / wearesellers content
@@ -59,7 +62,7 @@ USAGE
   --setup            First run: open headed Playwright Chromium (separate
                      profile), you log in there, profile saves to disk
   --connect-cdp [url] Connect to an already-running real Chrome via Chrome
-                     DevTools Protocol (default url: http://localhost:9222).
+                     DevTools Protocol (default url: http://127.0.0.1:9222).
                      Use this if Google blocks Playwright Chromium with
                      "This browser or app may not be secure" — connecting
                      to your real Chrome bypasses that detection because

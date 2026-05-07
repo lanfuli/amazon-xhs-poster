@@ -91,15 +91,32 @@ fi
 echo "Launching Chrome with --remote-debugging-port=$PORT …"
 open -na "Google Chrome" --args --remote-debugging-port="$PORT"
 
-# Verify by hitting the DevTools endpoint
-sleep 2
-if curl -fsS "http://localhost:$PORT/json/version" > /dev/null 2>&1; then
-  echo "✓ Chrome is reachable at http://localhost:$PORT"
-  echo ""
-  echo "Now run:"
-  echo "  node scripts/fetch-gated.mjs --connect-cdp --setup        # verify logins"
-  echo "  node scripts/fetch-gated.mjs --connect-cdp --date \$(date +%F)   # daily fetch"
-else
-  echo "⚠ Chrome launched but DevTools endpoint isn't responding yet."
-  echo "  Wait a few seconds, then test:  curl http://localhost:$PORT/json/version"
-fi
+# Verify by hitting the DevTools endpoint. Use 127.0.0.1 explicitly because
+# `localhost` on macOS resolves to ::1 (IPv6) but Chrome only binds IPv4
+# for --remote-debugging-port. Retry for up to ~12 seconds since Chrome can
+# take a few seconds to fully initialize the debug endpoint.
+echo "Waiting for DevTools endpoint to come up (up to 12s)…"
+ENDPOINT="http://127.0.0.1:$PORT/json/version"
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  if curl -fsS "$ENDPOINT" > /dev/null 2>&1; then
+    echo "✓ Chrome is reachable at http://127.0.0.1:$PORT (after ${i}s)"
+    echo ""
+    echo "Now run:"
+    echo "  node scripts/fetch-gated.mjs --connect-cdp --setup"
+    echo "  node scripts/fetch-gated.mjs --connect-cdp --date \$(date +%F)"
+    exit 0
+  fi
+  sleep 1
+done
+
+echo "⚠ Chrome launched but DevTools endpoint at $ENDPOINT didn't respond"
+echo "  within 12 seconds. Manual check:"
+echo "    curl $ENDPOINT"
+echo ""
+echo "  If that returns JSON, Chrome is fine and you can proceed. If it"
+echo "  still fails:"
+echo "    1. Confirm Chrome window is open (not just Cmd+Q'd)"
+echo "    2. Try: lsof -nP -iTCP:$PORT | grep LISTEN"
+echo "       — should show 'Google Chrome' process listening"
+echo "    3. Try a different port: bash scripts/launch-chrome-debug.sh 9333"
+exit 1
