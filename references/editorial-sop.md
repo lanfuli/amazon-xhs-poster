@@ -83,6 +83,21 @@ in America/Los_Angeles.
    - `https://www.helium10.com/category/podcast/`
      Helium 10 / Serious Sellers Podcast. Verified: latest #746 May
      2026 / #745 Apr 27 / #744 Apr 20.
+   - `https://corporate.walmart.com/news.sitemap.xml`
+     Walmart corporate news sitemap (machine-readable XML with
+     `<lastmod>` timestamps). Listing page at `/news` is JS-rendered
+     (broken for scrapers) but the sitemap exposes every dated
+     article URL — fetch-gated.mjs `fetchWalmartNews()` reads this
+     sitemap, picks top N by lastmod, and extracts each article body
+     via Playwright. Public, dated to the second.
+   - `https://www.youtube.com/feeds/videos.xml?channel_id=<UC...>`
+     YouTube channel RSS feed PATTERN. As of 2026-05 the public RSS
+     endpoint returns HTTP 404 from many regions — fetch-gated.mjs
+     `fetchYouTube()` works around this by visiting `youtube.com/@<handle>/videos`
+     via the user's logged-in Chrome (CDP) and scraping the rendered
+     `ytd-rich-item-renderer` grid. Configured channels:
+     - Helium 10 (`@Helium10`, channel UCpBvckYg2UXArcfzRcjpPjw)
+     - My Amazon Guy (`@MyAmazonGuy`, channel UClUSEsDS2sdgNJfCcCM_5Uw)
 
    ### Tier B — 🟡 Real content, but listing pages don't show dates
 
@@ -99,9 +114,10 @@ in America/Los_Angeles.
    - `https://advertising.amazon.com/library/newsroom`
      Amazon Ads announcements. (Replaces dead
      `advertising.amazon.com/library`.) Hub-style.
-   - `https://advertising.amazon.com/blog`
-     Same content surface as newsroom — hub-style with no individual
-     post dates.
+   - `https://advertising.amazon.com/resources/library`
+     Amazon Ads resource library (canonical URL — old `/blog`
+     301-redirects here). Hub-style; same content surface as
+     newsroom with no individual post dates.
    - `https://buywithprime.amazon.com/blog`
      Real blog with dates per post BUT update frequency is low (latest
      post Feb 4 2026 as of audit). Use as supplementary, not daily.
@@ -137,8 +153,14 @@ in America/Los_Angeles.
      extracts question + answer body via `.mod-body` class).
    - `https://www.billiondollarsellers.com/archive`
      Top-operator newsletter. Headlines + dates publicly visible
-     (verified May 7 / May 4 / Apr 30 2026), but full article body
-     requires paid subscription. Use as topic-of-the-week signal.
+     (verified May 7 / May 4 / Apr 30 2026); full article body
+     requires paid subscription. The fetch-gated script handles BDS
+     end-to-end if your Chrome is signed into a paid subscription —
+     it walks `/archive`, picks top N article links, and extracts
+     each body via `#content-blocks` (verified 2026-05-07, ~9k chars
+     of clean post content per article). Without a subscription,
+     leave `gated_sources.bds.enabled=false` to avoid noisy
+     "body not extracted" lines.
    - `https://sellercentral.amazon.com/forums/c/news-and-announcements`
      Amazon Seller Central forums. Login required. Useful when you're
      researching a specific seller-side issue, less useful for daily
@@ -165,8 +187,8 @@ in America/Los_Angeles.
    - `https://corporate.walmart.com/news` — JavaScript-rendered
      listing; HTML scrapers see only navigation chrome. Individual
      article URLs (e.g. `/news/2026/04/23/walmart-releases-2026-annual-report`)
-     work, but discoverability is broken. Skip the listing; if you
-     want Walmart corporate news, use Google search instead.
+     work. **Replacement: use `corporate.walmart.com/news.sitemap.xml`**
+     (Tier A) which has every article with `<lastmod>` timestamps.
    - `https://www.walmartconnect.com/insights` — only stale 2025
      case studies, not real-time insights. Drop unless you want
      long-form case study material specifically.
@@ -176,12 +198,31 @@ in America/Los_Angeles.
 
    ### Optional automation: `scripts/fetch-gated.mjs`
 
-   For Tier C sources, the skill ships `fetch-gated.mjs` — a Playwright
+   For Tier C sources (and a couple of Tier A sources where Playwright
+   is needed for body extraction — Walmart corporate articles, YouTube
+   channel videos), the skill ships `fetch-gated.mjs` — a Playwright
    script with persistent profile that fetches X / LinkedIn /
-   wearesellers content via your own browser session. Read
+   wearesellers / BDS / Walmart-news / YouTube content via your own
+   browser session. Read
    [`gated-sources.md`](gated-sources.md) before enabling — real ToS /
    account-suspension risk for automating logged-in services. Optional,
    disabled by default.
+
+   ### Source-decay audit: `scripts/audit-sources.mjs`
+
+   Public sources (Tier A / B) bit-rot — pages get renamed, redirected,
+   replaced, or quietly stop updating. To catch decay before it shows up
+   as an empty `gated-signal.md`, run monthly:
+
+       node scripts/audit-sources.mjs            # full report to stdout
+       node scripts/audit-sources.mjs --json     # machine-readable
+       node scripts/audit-sources.mjs --quiet    # only print URLs with issues
+
+   The script hits every Tier A/B URL with plain `fetch()` (no Playwright,
+   no auth), reports HTTP status / content-length / last-seen date, and
+   flags problems: 4xx/5xx, redirects (often a sign of rename), suspiciously
+   small payloads, and dates older than 90 days when a date regex is given.
+   Exits non-zero when any URL is flagged so you can wire it into CI.
 
    ### Tier E — Audience signal only (NEVER copy verbatim)
 

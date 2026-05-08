@@ -108,6 +108,27 @@
     "wearesellers": {
       "enabled": true,
       "top_n": 5
+    },
+
+    "_bds_help": "billiondollarsellers.com (BDS) is a paid newsletter for Amazon sellers (Bezos's 'your margin is my opportunity' demographic). Body IS paywalled, but if your real Chrome (the one fetch-gated.mjs connects via --connect-cdp) is logged into a paid subscription, the body extracts cleanly via the #content-blocks selector. Set enabled=false if you don't have a subscription — leaving it enabled without a subscription will produce 'body not extracted' lines, not crashes. Verified working 2026-05-07.",
+    "bds": {
+      "enabled": true,
+      "top_n": 5
+    },
+
+    "_walmart_help": "PUBLIC source despite being under gated_sources — keys are grouped here for organization. Walmart's /news listing page is JS-rendered, but corporate.walmart.com/news.sitemap.xml is a real machine-readable XML sitemap with <lastmod> timestamps. Fetcher reads sitemap (plain HTTP), filters to /news/YYYY/MM/DD/<slug> entries, picks top N by lastmod, and uses Playwright to extract each article's body. No login needed.",
+    "walmart": {
+      "enabled": true,
+      "top_n": 3
+    },
+
+    "_youtube_help": "PUBLIC source. YouTube's /feeds/videos.xml RSS endpoint returns 404 from many regions as of 2026-05, so the fetcher uses Playwright via CDP to visit youtube.com/@<handle>/videos and scrape the rendered video grid. No login required (YouTube serves the videos tab anonymously) but using your real Chrome works most reliably. Add or remove channels as needed; channel IDs are in the comment but not used (handle is enough for the /videos URL).",
+    "youtube": {
+      "enabled": true,
+      "channels": [
+        { "name": "Helium 10",     "handle": "Helium10",   "channel_id": "UCpBvckYg2UXArcfzRcjpPjw" },
+        { "name": "My Amazon Guy", "handle": "MyAmazonGuy", "channel_id": "UClUSEsDS2sdgNJfCcCM_5Uw" }
+      ]
     }
   }
 }

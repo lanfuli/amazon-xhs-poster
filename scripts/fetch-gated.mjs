@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
- * fetch-gated.mjs — fetch login-protected content (X, LinkedIn, wearesellers)
- * using a persistent Playwright profile.
+ * fetch-gated.mjs — fetch login-protected content (X, LinkedIn, wearesellers,
+ * billiondollarsellers.com) using a persistent Playwright profile.
  *
  * USAGE
  *   First run, interactively log in to all 3 services:
@@ -56,7 +56,7 @@ const CONNECT_CDP = flag('--connect-cdp');
 const CDP_URL = opt('--connect-cdp') || 'http://127.0.0.1:9222';
 
 if (flag('-h') || flag('--help')) {
-  console.log(`fetch-gated.mjs — fetch X / LinkedIn / wearesellers content
+  console.log(`fetch-gated.mjs — fetch X / LinkedIn / wearesellers / BDS content
 
 USAGE
   --setup            First run: open headed Playwright Chromium (separate
@@ -248,6 +248,7 @@ if (SETUP_MODE) {
       console.log('  • https://x.com/');
       console.log('  • https://www.linkedin.com/');
       console.log('  • https://www.wearesellers.com/');
+      console.log('  • https://www.billiondollarsellers.com/  (subscription)');
       console.log('Once logged in there, run without --setup to fetch.');
     } finally {
       await page.close();
@@ -268,6 +269,7 @@ if (SETUP_MODE) {
   console.log('  • https://x.com/login');
   console.log('  • https://www.linkedin.com/login');
   console.log('  • https://www.wearesellers.com/account/login/');
+  console.log('  • https://www.billiondollarsellers.com/sign-in  (subscription required for full body)');
   console.log('');
   console.log('When done, close the window OR press Ctrl+C here.');
   console.log('Cookies are saved to:', profileDir);
@@ -638,9 +640,316 @@ async function fetchWearesellers() {
   return { name: 'wearesellers.com', body: lines.join('\n') };
 }
 
+// ===== BDS (billiondollarsellers.com) =====
+async function fetchBDS() {
+  const bdsCfg = gatedCfg.bds || {};
+  if (!bdsCfg.enabled) {
+    return { name: 'billiondollarsellers.com', skipped: true, reason: 'disabled' };
+  }
+
+  const topN = bdsCfg.top_n || 5;
+  const lines = [`## billiondollarsellers.com — top ${topN} archive posts`, ''];
+
+  if (DRY_RUN) {
+    lines.push('_(DRY RUN: would fetch /archive and click into top posts)_');
+    return { name: 'billiondollarsellers.com', body: lines.join('\n') };
+  }
+
+  const page = await ctx.newPage();
+  try {
+    await page.goto('https://www.billiondollarsellers.com/archive', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await sleep(2500);
+
+    // BDS archive structure (verified via CDP probe 2026-05-07):
+    //   - Article links: <a href="/p/<slug>"> within the archive list
+    //   - Date text appears as "Mon DD, YYYY • N min read" near each title
+    //   - Article body container: #content-blocks (id) OR .dream-post-content-doc
+    //
+    // We collect the top N article anchors (deduped by canonical /p/<slug>),
+    // then navigate into each to extract the body.
+    const links = await page.$$eval('a[href*="/p/"]', (nodes) => {
+      // BDS archive anchors include date / "N min read" / bullet separator
+      // in the same innerText as the title. Strip those so the title is
+      // just the article title (typically prefixed with "[ BDSN ]").
+      const cleanTitle = (raw) => {
+        return raw
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean)
+          .filter(s => s !== '•')
+          .filter(s => !/^\d+\s*min\s*read$/i.test(s))
+          .filter(s => !/^[A-Z][a-z]+ \d{1,2}, \d{4}$/.test(s))  // "May 7, 2026"
+          .join(' ')
+          .slice(0, 200);
+      };
+      return nodes
+        .map((n) => ({
+          href: n.href,
+          text: (() => {
+            const direct = cleanTitle(n.innerText || '');
+            if (direct.length > 8) return direct;
+            const parent = n.parentElement;
+            if (!parent) return direct;
+            const heading = parent.querySelector('h1, h2, h3, h4');
+            return cleanTitle(heading?.innerText || direct);
+          })(),
+        }))
+        .filter(l => /\/p\/[^/?#]+/.test(l.href))
+        .slice(0, 80);
+    });
+
+    const canonicalKey = (href) => {
+      const m = href.match(/billiondollarsellers\.com\/p\/([^/?#]+)/);
+      return m ? m[1] : href;
+    };
+
+    const seen = new Set();
+    const unique = links.filter((l) => {
+      if (l.text.length < 6) return false;
+      const key = canonicalKey(l.href);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, topN);
+
+    if (!unique.length) {
+      lines.push('_(no articles found on /archive — check login state or layout change)_');
+    } else {
+      for (const link of unique) {
+        try {
+          const cleanUrl = link.href.split('?')[0].split('#')[0];
+          await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 25000 });
+          await sleep(1800);
+
+          const result = await page.evaluate(() => {
+            // Body extraction (verified selectors, in priority order):
+            //   1. #content-blocks — canonical id on subscribed view
+            //   2. .dream-post-content-doc — alternate class on same node
+            //   3. .rendered-post — wrapping container fallback
+            const selectors = ['#content-blocks', '.dream-post-content-doc', '.rendered-post'];
+            let body = '';
+            for (const sel of selectors) {
+              const el = document.querySelector(sel);
+              if (el?.innerText?.trim().length > 100) {
+                body = el.innerText.trim().slice(0, 1800);
+                break;
+              }
+            }
+            // Date: BDS shows "Mon DD, YYYY • N min read" near the title.
+            // Try the first <time> element, then fall back to scanning text.
+            let dateStr = document.querySelector('time')?.getAttribute('datetime')
+              || document.querySelector('time')?.innerText?.trim()
+              || '';
+            if (!dateStr) {
+              const m = document.body.innerText?.match(/([A-Z][a-z]+ \d{1,2}, \d{4})/);
+              if (m) dateStr = m[1];
+            }
+            return { body, dateStr };
+          }).catch(() => ({ body: '', dateStr: '' }));
+
+          const datePart = result.dateStr ? ` (${result.dateStr})` : '';
+          lines.push(`- **${link.text}**${datePart}`);
+          lines.push(`  ${cleanUrl}`);
+          if (result.body) {
+            const summary = result.body.split('\n').filter(l => l.trim()).slice(0, 6).join(' / ');
+            lines.push(`  ${summary}`);
+          } else {
+            lines.push(`  _(body not extracted — paywalled article or DOM change)_`);
+          }
+          lines.push('');
+        } catch (err) {
+          lines.push(`- **${link.text}** — _⚠ ${err.message?.slice(0, 100)}_`);
+          lines.push('');
+        }
+        await sleep(randomDelay());
+      }
+    }
+  } catch (err) {
+    lines.push(`_⚠ fetch failed: ${err.message?.slice(0, 200)}_`);
+  } finally {
+    await page.close();
+  }
+
+  return { name: 'billiondollarsellers.com', body: lines.join('\n') };
+}
+
+// ===== Walmart corporate news (PUBLIC, sitemap-driven) =====
+// Walmart's /news listing page is JS-rendered (only nav chrome in raw HTML),
+// but `https://corporate.walmart.com/news.sitemap.xml` is a real machine-
+// readable sitemap with <lastmod> timestamps. This fetcher pulls the
+// sitemap, picks the top N most-recently-modified URLs that look like
+// /news/YYYY/MM/DD/<slug> articles (filtering out events/, content/,
+// suppliers/), and uses Playwright to extract title + first-paragraph body.
+async function fetchWalmartNews() {
+  const wmCfg = gatedCfg.walmart || {};
+  if (!wmCfg.enabled) {
+    return { name: 'corporate.walmart.com', skipped: true, reason: 'disabled' };
+  }
+
+  const topN = wmCfg.top_n || 5;
+  const lines = [`## corporate.walmart.com — top ${topN} recent news`, ''];
+
+  if (DRY_RUN) {
+    lines.push('_(DRY RUN: would fetch news.sitemap.xml and click into top N)_');
+    return { name: 'corporate.walmart.com', body: lines.join('\n') };
+  }
+
+  let sitemapXml;
+  try {
+    const resp = await fetch('https://corporate.walmart.com/news.sitemap.xml', {
+      headers: { 'User-Agent': 'Mozilla/5.0 amazon-xhs-poster/1.7' },
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    sitemapXml = await resp.text();
+  } catch (err) {
+    lines.push(`_⚠ sitemap fetch failed: ${err.message}_`);
+    return { name: 'corporate.walmart.com', body: lines.join('\n') };
+  }
+
+  // Parse sitemap entries: <url><loc>...</loc><lastmod>...</lastmod></url>
+  const entries = [];
+  const urlBlockRe = /<url>([\s\S]*?)<\/url>/g;
+  let m;
+  while ((m = urlBlockRe.exec(sitemapXml)) !== null) {
+    const block = m[1];
+    const loc = (block.match(/<loc>([^<]+)<\/loc>/) || [])[1];
+    const lastmod = (block.match(/<lastmod>([^<]+)<\/lastmod>/) || [])[1];
+    if (!loc) continue;
+    // Keep only article-style URLs: /news/YYYY/MM/DD/<slug>
+    if (!/\/news\/\d{4}\/\d{2}\/\d{2}\//.test(loc)) continue;
+    entries.push({ loc, lastmod: lastmod || '' });
+  }
+  // Sort by lastmod desc; ties → URL date desc.
+  entries.sort((a, b) => (b.lastmod || '').localeCompare(a.lastmod || ''));
+  const picks = entries.slice(0, topN);
+
+  if (!picks.length) {
+    lines.push('_(no /news/YYYY/MM/DD/ articles found in sitemap)_');
+    return { name: 'corporate.walmart.com', body: lines.join('\n') };
+  }
+
+  const page = await ctx.newPage();
+  try {
+    for (const entry of picks) {
+      try {
+        await page.goto(entry.loc, { waitUntil: 'domcontentloaded', timeout: 25000 });
+        await sleep(1500);
+        const result = await page.evaluate(() => {
+          const title = document.querySelector('h1')?.innerText?.trim() || '';
+          // Walmart article body: try common containers in priority order.
+          const bodySelectors = [
+            'article',
+            '.cmp-text',
+            '[class*="news-detail"]',
+            'main',
+          ];
+          let body = '';
+          for (const sel of bodySelectors) {
+            const el = document.querySelector(sel);
+            if (el?.innerText?.trim().length > 200) {
+              body = el.innerText.trim();
+              break;
+            }
+          }
+          return { title, body: body.slice(0, 1500) };
+        }).catch(() => ({ title: '', body: '' }));
+
+        const dateLabel = entry.lastmod ? entry.lastmod.slice(0, 10) : 'undated';
+        lines.push(`- **${result.title || entry.loc}** (${dateLabel})`);
+        lines.push(`  ${entry.loc}`);
+        if (result.body) {
+          const summary = result.body.split('\n').filter(l => l.trim()).slice(0, 4).join(' / ');
+          lines.push(`  ${summary}`);
+        } else {
+          lines.push(`  _(body not extracted — DOM selector mismatch)_`);
+        }
+        lines.push('');
+      } catch (err) {
+        lines.push(`- ${entry.loc} — _⚠ ${err.message?.slice(0, 100)}_`);
+        lines.push('');
+      }
+      await sleep(randomDelay());
+    }
+  } finally {
+    await page.close();
+  }
+
+  return { name: 'corporate.walmart.com', body: lines.join('\n') };
+}
+
+// ===== YouTube creator-signal (Playwright via existing CDP) =====
+// YouTube's `/feeds/videos.xml?channel_id=...` RSS endpoint is unreliable
+// (returns 404 from many IPs / regions as of 2026-05). Workaround: visit
+// the channel's /videos page via the user's logged-in Chrome (CDP) and
+// extract titles + relative dates from the rendered DOM.
+async function fetchYouTube() {
+  const ytCfg = gatedCfg.youtube || {};
+  if (!ytCfg.enabled || !ytCfg.channels?.length) {
+    return { name: 'YouTube', skipped: true, reason: 'disabled or no channels configured' };
+  }
+
+  const lines = [`## YouTube — recent uploads`, ''];
+
+  if (DRY_RUN) {
+    for (const c of ytCfg.channels) {
+      lines.push(`### ${c.name || c.handle} — DRY RUN`);
+      lines.push('');
+    }
+    return { name: 'YouTube', body: lines.join('\n') };
+  }
+
+  const page = await ctx.newPage();
+  try {
+    for (const ch of ytCfg.channels) {
+      const handle = ch.handle?.startsWith('@') ? ch.handle : `@${ch.handle}`;
+      const name = ch.name || handle;
+      const url = `https://www.youtube.com/${handle}/videos`;
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        // YouTube is JS-heavy; wait for the video grid.
+        await page.waitForSelector('ytd-rich-item-renderer, ytd-grid-video-renderer', { timeout: 12000 }).catch(() => null);
+        await sleep(2000);
+        const videos = await page.$$eval(
+          'ytd-rich-item-renderer, ytd-grid-video-renderer',
+          (nodes) => nodes.slice(0, 5).map((node) => {
+            const titleEl = node.querySelector('#video-title, a#video-title-link, h3 a');
+            const title = titleEl?.innerText?.trim() || titleEl?.getAttribute('title') || '';
+            const link = titleEl?.href || '';
+            // Metadata line typically reads "1.2K views · 3 days ago"
+            const meta = node.querySelector('#metadata-line')?.innerText?.trim() || '';
+            return { title, url: link, meta };
+          }).filter(v => v.title)
+        );
+
+        lines.push(`### ${name}`);
+        if (!videos.length) {
+          lines.push(`_(no videos visible at ${url})_`);
+          lines.push('');
+        } else {
+          for (const v of videos) {
+            const metaLine = v.meta ? ` (${v.meta.replace(/\s+/g, ' ')})` : '';
+            lines.push(`- **${v.title}**${metaLine}`);
+            if (v.url) lines.push(`  ${v.url}`);
+          }
+          lines.push('');
+        }
+      } catch (err) {
+        lines.push(`### ${name}`);
+        lines.push(`_⚠ fetch failed: ${err.message?.slice(0, 200)}_`);
+        lines.push('');
+      }
+      await sleep(randomDelay());
+    }
+  } finally {
+    await page.close();
+  }
+
+  return { name: 'YouTube', body: lines.join('\n') };
+}
+
 // ----- run all -----
 const results = [];
-for (const fn of [fetchX, fetchLinkedIn, fetchWearesellers]) {
+for (const fn of [fetchX, fetchLinkedIn, fetchWearesellers, fetchBDS, fetchWalmartNews, fetchYouTube]) {
   try {
     const r = await fn();
     results.push(r);

@@ -4,6 +4,92 @@ All notable changes to this project are documented here. Format inspired
 by [Keep a Changelog](https://keepachangelog.com/); the project follows
 [Semantic Versioning](https://semver.org/) where reasonable.
 
+## [v1.7.0] — 2026-05-07
+
+### Added
+
+- **Walmart corporate news fetcher** (`fetchWalmartNews()` in
+  `scripts/fetch-gated.mjs`) — pulls `corporate.walmart.com/news.sitemap.xml`
+  (machine-readable XML with `<lastmod>` timestamps), filters to
+  `/news/YYYY/MM/DD/<slug>` entries, picks top N by lastmod, and uses
+  Playwright to extract each article body. Closes the gap that
+  `walmart-multi-channel` angle had only 1 source (release notes).
+
+- **YouTube creator-signal fetcher** (`fetchYouTube()` in
+  `scripts/fetch-gated.mjs`) — visits `youtube.com/@<handle>/videos`
+  via the user's logged-in Chrome (CDP) and scrapes the rendered
+  `ytd-rich-item-renderer` grid. Workaround for YouTube's RSS endpoint
+  returning HTTP 404 from many regions as of 2026-05. Default
+  channels: `@Helium10`, `@MyAmazonGuy`. Fills the previously-empty
+  `creator-signal` angle quota.
+
+- **`scripts/audit-sources.mjs`** — periodic decay-check for Tier A/B
+  public sources. Hits every URL with plain `fetch()` (no Playwright,
+  no auth), reports HTTP status / content-length / last-seen date, and
+  flags problems (4xx, redirects, suspiciously small payloads, dates
+  >90 days old). Exits non-zero on any flag — wire into CI for
+  monthly cadence. Confirmed `advertising.amazon.com/blog` now
+  301-redirects to `/resources/library`; updated editorial-sop.md to
+  use the canonical URL.
+
+- `gated_sources.walmart` and `gated_sources.youtube` config blocks
+  in `config.example.json` and user config schema. Both PUBLIC (no
+  login needed) but grouped under `gated_sources` for organizational
+  unity — they share the same Playwright/CDP plumbing.
+
+### Changed
+
+- `editorial-sop.md` — Tier A grew from 4 → 6 entries (added Walmart
+  corporate news sitemap + YouTube channel pattern). The dead entry
+  for `corporate.walmart.com/news` listing now points to the sitemap
+  as replacement. Added "Source-decay audit" section pointing at
+  `audit-sources.mjs`.
+
+- `fetch-gated.mjs` run-all loop now iterates 6 fetchers (was 4):
+  X, LinkedIn, wearesellers, BDS, Walmart-news, YouTube.
+
+### Reasoning
+
+Audit of v1.6.0 source list revealed three structural gaps: (1)
+`walmart-multi-channel` angle quota allowed up to 3 cards/day but had
+only 1 Walmart source feeding it; (2) `creator-signal` quota allowed
+up to 2 cards/day but had zero feeds; (3) every URL was last-verified
+on the same day (2026-05-07) with no re-verification cadence baked in.
+This release closes all three.
+
+## [v1.6.0] — 2026-05-07
+
+### Added
+
+- **BDS (billiondollarsellers.com) gated fetcher** — new `fetchBDS()`
+  in `scripts/fetch-gated.mjs` walks `https://www.billiondollarsellers.com/archive`,
+  picks top N article links (deduped by canonical `/p/<slug>`), and
+  extracts each body via verified selector chain `#content-blocks` →
+  `.dream-post-content-doc` → `.rendered-post`. Confirmed via CDP
+  probe 2026-05-07 to extract ~9k chars of clean post content per
+  article when the connected Chrome is signed into a paid subscription.
+
+- `gated_sources.bds` config block (`enabled`, `top_n`) in
+  `config.example.json` and user config schema. Enabled by default
+  with `top_n: 5`; flip to `enabled: false` if you don't have a BDS
+  subscription (avoids noisy "body not extracted" lines).
+
+### Changed
+
+- `editorial-sop.md` — BDS entry under Tier C now reflects the
+  fetcher integration: subscribed users get full body via
+  `--connect-cdp`, non-subscribers see headlines only.
+
+### Reasoning
+
+Previous v1.5.0 audit treated BDS as headline-only because anonymous
+WebFetch only sees the article preview. User pointed out that with
+a paid subscription the full body IS readable through the
+`--connect-cdp` flow we already ship. CDP probe confirmed
+`#content-blocks` returns 9006 chars of real content; adding BDS as
+a fourth source type costs ~110 LoC and meaningfully expands signal
+coverage.
+
 ## [v1.4.2] — 2026-05-07
 
 ### Added
