@@ -135,3 +135,32 @@ def test_platform_cli_override(write_config, make_post, run_make_post_md):
     rc, md, _ = run_make_post_md(post_path, cfg, platform="x")
     assert rc == 0
     assert "## Thread" in md or "Tweet 1/2" in md
+
+
+def test_instagram_post_md_suppresses_title_header(write_config, make_post, run_make_post_md):
+    """Regression (R7): Instagram has no title field on the actual platform
+    — posting a title separately would confuse IG users. post.md should
+    suppress '## Title' for IG even when xhs.title is set, while still
+    keeping the title header for other platforms (XHS especially)."""
+    cfg = write_config(platform="instagram", output_language="en")
+    post_path, _ = make_post(
+        platform="instagram", language="en",
+        title="Internal-Only Title For Tracking",
+    )
+    rc, md, _ = run_make_post_md(post_path, cfg)
+    assert rc == 0
+    # The title text itself shouldn't appear under a heading section
+    assert "## Title" not in md, "Instagram should suppress '## Title' header"
+    # Caption + Carousel sections are still present (sanity check)
+    assert "## Caption" in md
+    assert "## Carousel" in md
+
+
+def test_xhs_post_md_keeps_title_header(write_config, make_post, run_make_post_md):
+    """Counterpoint to the IG suppression: XHS still emits '## 标题'
+    because XHS HAS a title field (≤20 chars enforced)."""
+    cfg = write_config(platform="xiaohongshu", output_language="zh")
+    post_path, _ = make_post(platform="xiaohongshu", language="zh")
+    rc, md, _ = run_make_post_md(post_path, cfg)
+    assert rc == 0
+    assert "## 标题" in md, "XHS should keep title header (XHS has a real title field)"

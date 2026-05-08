@@ -175,7 +175,11 @@ def render_carousel(post, cards, hashtag_line, H, platform, job_date, timestamp)
     h1 = H["h1_per_platform"].get(platform, H["h1_default"])
 
     lines = [f"# {h1} — {job_date}", ""]
-    if title:
+    # Title section: only emit for platforms where titles are actually
+    # posted. Instagram has no title field — buyers see only the caption
+    # — so emitting "## Title" misleads first-time IG users into thinking
+    # they should post the title separately.
+    if title and platform != "instagram":
         lines += [f"## {H['title']}", "", title, ""]
     lines += [f"## {body_label}", "", content or H["empty"], ""]
     lines += [f"## {H['hashtags']}", "", hashtag_line or H["empty"], ""]
