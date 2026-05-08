@@ -114,6 +114,62 @@ def main():
     drafts_root = expand(paths_cfg.get("drafts_root"))
     if not drafts_root:
         sys.exit("config.paths.drafts_root is empty — set it in your config.json")
+
+    # ─── Pre-flight checks BEFORE any mkdir / disk write ───────────────
+    # Order matters: catch unfilled config values FIRST so we don't leave
+    # orphan empty drafts_root / job_dir / cards/ trees behind when the
+    # user is just trying things out with the unedited config template.
+
+    persona_cfg = config.get("persona") or {}
+    sig_raw = (persona_cfg.get("signature") or "").strip()
+    brand_raw = (persona_cfg.get("brand_cn") or "").strip()
+    identity_raw = (persona_cfg.get("identity") or "").strip()
+    if not sig_raw and not brand_raw:
+        sys.exit(
+            "config.persona.brand_cn and config.persona.signature are BOTH empty. "
+            "Set at least one (typically brand_cn — signature defaults to it). "
+            "Without a signature, every rendered card footer will be blank."
+        )
+    placeholder_fields = []
+    for field, value in (("brand_cn", brand_raw), ("identity", identity_raw), ("signature", sig_raw)):
+        if value.startswith("REPLACE_ME"):
+            placeholder_fields.append(field)
+    if placeholder_fields:
+        sys.exit(
+            f"config.persona has unfilled REPLACE_ME placeholder(s): {placeholder_fields}. "
+            "Open your config.json and replace the REPLACE_ME values with your "
+            "actual brand / identity / signature before initializing a draft."
+        )
+
+    language = (config.get("output_language") or "zh").strip().lower()
+    if language not in ("zh", "en"):
+        language = "zh"
+
+    platform = (config.get("platform") or "xiaohongshu").strip().lower()
+    PLATFORM_DEFAULTS = {
+        "xiaohongshu": {"title_max": 20, "card_min": 6, "card_max": 9, "renders_cards": True},
+        "linkedin":    {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
+        "x":           {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
+        "instagram":   {"title_max": 0,  "card_min": 1, "card_max": 10, "renders_cards": True},
+    }
+    if platform not in PLATFORM_DEFAULTS:
+        # Surface invalid platform clearly. Common case: user upgraded from
+        # an older version that supported `lemon8` (removed in v1.8.0).
+        print(
+            f"warning: unknown platform={platform!r} in config; falling back to "
+            f"'xiaohongshu'. supported: {sorted(PLATFORM_DEFAULTS)}",
+            file=sys.stderr,
+        )
+        platform = "xiaohongshu"
+    p_defaults = PLATFORM_DEFAULTS[platform]
+
+    attention_goal_default = {
+        "zh": "3秒内停留并产生关注/收藏意图",
+        "en": "Stop the scroll in 3 seconds, earn a follow or save",
+    }[language]
+
+    # ─── All pre-flight checks passed; safe to create directories ──────
+
     try:
         drafts_root.mkdir(parents=True, exist_ok=True)
     except OSError as err:
@@ -148,48 +204,6 @@ def main():
         (desktop_root / "meta").mkdir(parents=True, exist_ok=True)
     else:
         desktop_root = None
-
-    persona_cfg = config.get("persona") or {}
-    language = (config.get("output_language") or "zh").strip().lower()
-    if language not in ("zh", "en"):
-        language = "zh"
-
-    platform = (config.get("platform") or "xiaohongshu").strip().lower()
-    PLATFORM_DEFAULTS = {
-        "xiaohongshu": {"title_max": 20, "card_min": 6, "card_max": 9, "renders_cards": True},
-        "linkedin":    {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
-        "x":           {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
-        "instagram":   {"title_max": 0,  "card_min": 1, "card_max": 10, "renders_cards": True},
-    }
-    if platform not in PLATFORM_DEFAULTS:
-        # Surface invalid platform clearly. Common case: user upgraded from
-        # an older version that supported `lemon8` (removed in v1.8.0).
-        print(
-            f"warning: unknown platform={platform!r} in config; falling back to "
-            f"'xiaohongshu'. supported: {sorted(PLATFORM_DEFAULTS)}",
-            file=sys.stderr,
-        )
-        platform = "xiaohongshu"
-    p_defaults = PLATFORM_DEFAULTS[platform]
-
-    attention_goal_default = {
-        "zh": "3秒内停留并产生关注/收藏意图",
-        "en": "Stop the scroll in 3 seconds, earn a follow or save",
-    }[language]
-
-    # Persona sanity check — fail fast on three states the user shouldn't
-    # ship with: (a) both signature and brand_cn empty (silent blank
-    # footer), (b) brand_cn still set to the REPLACE_ME placeholder from
-    # config.example.json, (c) brand_cn or identity is the placeholder.
-    sig_raw = (persona_cfg.get("signature") or "").strip()
-    brand_raw = (persona_cfg.get("brand_cn") or "").strip()
-    identity_raw = (persona_cfg.get("identity") or "").strip()
-    if not sig_raw and not brand_raw:
-        sys.exit(
-            "config.persona.brand_cn and config.persona.signature are BOTH empty. "
-            "Set at least one (typically brand_cn — signature defaults to it). "
-            "Without a signature, every rendered card footer will be blank."
-        )
     placeholder_fields = []
     for field, value in (("brand_cn", brand_raw), ("identity", identity_raw), ("signature", sig_raw)):
         if value.startswith("REPLACE_ME"):

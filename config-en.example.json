@@ -60,7 +60,7 @@
   },
 
   "paths": {
-    "drafts_root": "~/amazon-post-drafts",
+    "drafts_root": "~/wayamzpost-drafts",
     "desktop_root": "",
     "history_lookback_days": 30
   },
