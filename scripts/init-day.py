@@ -94,7 +94,8 @@ TOPIC_STUB = """# Topic — {date}
 
 ## Public-source policy
 
-Do not name sites or research stack in cards / xhs.content. Treat as internal
+Do not name sites or research stack in the public-facing copy
+(`xhs.content`, `xhs.thread`, or any card body). Treat as internal
 unless the user explicitly asks for attribution.
 """
 
@@ -338,7 +339,15 @@ def main():
         print(result.stdout.strip())
 
     print(f"\nready: {job_dir}")
-    print("next: fill in research/topic.md, then write topic + cards into post.json")
+    # Platform-aware next-step hint. Carousel platforms (XHS, IG) need
+    # the user to author 6+ cards; text-only platforms (LinkedIn, X)
+    # write content / thread directly.
+    if p_defaults["renders_cards"]:
+        print("next: fill in research/topic.md, then write topic + cards into post.json")
+    elif platform == "x":
+        print("next: fill in research/topic.md, then write topic + content (or xhs.thread[]) into post.json")
+    else:
+        print("next: fill in research/topic.md, then write topic + xhs.content into post.json")
 
 
 if __name__ == "__main__":
