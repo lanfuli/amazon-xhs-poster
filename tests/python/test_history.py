@@ -109,7 +109,7 @@ def test_history_markdown_output(write_config, tmp_path):
     res = _run_history(cfg, out_json, output_md=out_md, drafts_root=drafts)
     assert res.returncode == 0
     md = out_md.read_text()
-    assert "Recent Amazon XHS History" in md
+    assert "Recent wayamzpost History" in md
     assert "Post about Amazon FBA returns" in md
 
 

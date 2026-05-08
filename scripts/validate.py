@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Validate an Amazon XHS post.json against the rules defined in config.json.
+"""Validate a wayamzpost post.json against the rules defined in config.json.
 
 This is a parameterized port of the in-house validator
-(`validate-amazon-xhs-post.py`). All hardcoded persona / brand / forbidden
+(`validate-wayamzpost.py`). All hardcoded persona / brand / forbidden
 tokens / angle ceilings have been moved to config.json so anyone can use the
 same methodology with their own account, voice, and confidentiality boundary.
 
 Resolution order for config:
   1. --config <path> argument
-  2. XHS_AMAZON_CONFIG env var
-  3. ~/.config/amazon-xhs-poster/config.json
+  2. WAYAMZPOST_CONFIG env var
+  3. XHS_AMAZON_CONFIG env var (legacy)
+  4. ~/.config/wayamzpost/config.json
+  5. ~/.config/amazon-xhs-poster/config.json (legacy)
 """
 from __future__ import annotations
 
@@ -145,17 +147,23 @@ PARALLEL_DIM_PREFIX = re.compile(r"^第[1-9一二三四五六七八九]+[步种�
 
 # ---------- Config loading ----------
 
-DEFAULT_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
+DEFAULT_CONFIG_PATH = Path("~/.config/wayamzpost/config.json").expanduser()
+LEGACY_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
 
 
 def resolve_config_path(cli_path: str | None) -> Path | None:
     if cli_path:
         return Path(cli_path).expanduser().resolve()
-    env = os.environ.get("XHS_AMAZON_CONFIG")
+    env = os.environ.get("WAYAMZPOST_CONFIG")
     if env:
         return Path(env).expanduser().resolve()
+    legacy_env = os.environ.get("XHS_AMAZON_CONFIG")
+    if legacy_env:
+        return Path(legacy_env).expanduser().resolve()
     if DEFAULT_CONFIG_PATH.exists():
         return DEFAULT_CONFIG_PATH
+    if LEGACY_CONFIG_PATH.exists():
+        return LEGACY_CONFIG_PATH
     return None
 
 
@@ -163,8 +171,9 @@ def load_config(cli_path: str | None) -> dict:
     path = resolve_config_path(cli_path)
     if not path:
         raise SystemExit(
-            "no config.json found; pass --config <path>, set XHS_AMAZON_CONFIG, "
-            f"or place a config at {DEFAULT_CONFIG_PATH}"
+            "no config.json found; pass --config <path>, set WAYAMZPOST_CONFIG, "
+            f"or place a config at {DEFAULT_CONFIG_PATH} "
+            f"(legacy fallback: {LEGACY_CONFIG_PATH})"
         )
     if not path.exists():
         raise SystemExit(f"config not found: {path}")
@@ -202,7 +211,7 @@ def is_valid_source_url(value: object) -> bool:
     if not isinstance(value, str):
         return False
     v = value.strip()
-    if not (v.startswith("http://") or v.startswith("https://")):
+    if not v.startswith("https://"):
         return False
     try:
         parsed = urllib.parse.urlparse(v)

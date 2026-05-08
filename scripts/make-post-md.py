@@ -111,17 +111,22 @@ PLATFORM_FORMAT = {
 }
 
 
-DEFAULT_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
+DEFAULT_CONFIG_PATH = Path("~/.config/wayamzpost/config.json").expanduser()
+LEGACY_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
 
 
 def _read_config(cli_config: str | None) -> dict | None:
     config_path = None
     if cli_config:
         config_path = Path(cli_config).expanduser()
+    elif os.environ.get("WAYAMZPOST_CONFIG"):
+        config_path = Path(os.environ["WAYAMZPOST_CONFIG"]).expanduser()
     elif os.environ.get("XHS_AMAZON_CONFIG"):
         config_path = Path(os.environ["XHS_AMAZON_CONFIG"]).expanduser()
     elif DEFAULT_CONFIG_PATH.exists():
         config_path = DEFAULT_CONFIG_PATH
+    elif LEGACY_CONFIG_PATH.exists():
+        config_path = LEGACY_CONFIG_PATH
     if config_path and config_path.exists():
         try:
             return json.loads(config_path.read_text())

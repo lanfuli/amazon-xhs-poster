@@ -1,10 +1,10 @@
 ---
-name: amazon-xhs-poster
+name: wayamzpost
 description: Generate one Amazon-seller post tailored to a specific platform — Xiaohongshu (default, 6-9 cards), Lemon8 (6-10 cards), LinkedIn (long-form text, ≤3000 chars, 3-5 hashtags), X / Twitter (single tweet ≤280 chars OR thread of up to 25), or Instagram (1-10 carousel + ≤2200 char caption). Each platform has its own char limits, hashtag rules, card count range, and post.md output layout. Supports Chinese (default) or English output via config.output_language. Trigger when the user says "写小红书 amazon post / 亚马逊小红书 / amazon seller post / linkedin amazon post / x amazon thread / instagram amazon carousel" or asks for a platform-specific seller-audience post. Generates artifacts only; does NOT auto-publish unless the user explicitly enables a publish adapter in their config.
 version: 1.7.0
 ---
 
-# Amazon XHS Poster
+# wayamzpost
 
 Generate one Amazon-seller-themed Xiaohongshu (小红书) post per day:
 6–9 deterministic image cards rendered from HTML templates, plus a
@@ -19,8 +19,11 @@ upload to the Xiaohongshu app.
    explicitly sets `publish_adapter.enabled = true` in their config and
    provides a `module_path`. See [references/publish-adapter.md](references/publish-adapter.md).
 2. **Config is mandatory.** First-run users must copy
-   [`config.example.json`](config.example.json) to `~/.config/amazon-xhs-poster/config.json`
-   (or wherever; set `XHS_AMAZON_CONFIG=<path>`) and fill in `persona.brand_cn`.
+   [`config.example.json`](config.example.json) to `~/.config/wayamzpost/config.json`
+   (or wherever; set `WAYAMZPOST_CONFIG=<path>`) and fill in `persona.brand_cn`.
+   Existing installs that still use `XHS_AMAZON_CONFIG` or
+   `~/.config/amazon-xhs-poster/config.json` remain supported as a legacy
+   fallback.
    The validator refuses to run while it still says `REPLACE_ME`. Pick
    `output_language: "zh"` or `"en"` AND `platform: "xiaohongshu" |
    "lemon8" | "linkedin" | "x" | "instagram"` here — they change the title
@@ -62,8 +65,8 @@ AirDrop/iCloud sync to phone.
 ### Stage 0 — Initialize the day
 
 In every command below, `${SKILL_DIR}` is the install path of this skill —
-typically `~/.claude/skills/amazon-xhs-poster`. Substitute literally before
-running, or `export SKILL_DIR=~/.claude/skills/amazon-xhs-poster` first.
+typically `~/.claude/skills/wayamzpost`. Substitute literally before
+running, or `export SKILL_DIR=~/.claude/skills/wayamzpost` first.
 
 ```bash
 python3 ${SKILL_DIR}/scripts/init-day.py [--config <path>] [--date YYYY-MM-DD]
@@ -178,8 +181,8 @@ Setup (one-time):
 
 ```bash
 # 1. Launch a separate Chrome with debug port enabled.
-#    NOTE: this quits any running Chrome and relaunches with a dedicated
-#    debug profile. Save your tabs first.
+#    NOTE: this uses a dedicated debug profile and leaves your normal
+#    Chrome session alone.
 bash ${SKILL_DIR}/scripts/launch-chrome-debug.sh
 
 # 2. In that Chrome, log in to: x.com, linkedin.com, wearesellers.com,
@@ -254,7 +257,7 @@ X), per-platform editorial guidance, and cross-posting workflow.
 ## Tree
 
 ```
-amazon-xhs-poster/
+wayamzpost/
 ├── SKILL.md                    (this file)
 ├── README.md                   (install + first-run; user-facing)
 ├── config.example.json         (zh-default; copy and fill)

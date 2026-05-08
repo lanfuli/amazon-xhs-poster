@@ -98,7 +98,7 @@ const SOURCES = [
   },
 ];
 
-const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 amazon-xhs-poster/audit';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 wayamzpost/audit';
 
 async function probe(source) {
   const start = Date.now();

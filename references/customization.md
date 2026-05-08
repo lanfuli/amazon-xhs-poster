@@ -227,7 +227,7 @@ The sum of floors should be ≤ 14; the sum of ceilings should be > 14
 
 ```json
 "paths": {
-  "drafts_root": "~/xhs-amazon-drafts",
+  "drafts_root": "~/wayamzpost-drafts",
   "desktop_root": "",
   "history_lookback_days": 30
 }
@@ -262,14 +262,16 @@ These get merged with the defaults, not replacing them. They show up in
 Resolution order (every script in this skill):
 
 1. `--config <path>` argument
-2. `XHS_AMAZON_CONFIG` env var (an absolute path)
-3. `~/.config/amazon-xhs-poster/config.json`
+2. `WAYAMZPOST_CONFIG` env var (an absolute path)
+3. `XHS_AMAZON_CONFIG` env var (legacy)
+4. `~/.config/wayamzpost/config.json`
+5. `~/.config/amazon-xhs-poster/config.json` (legacy)
 
 For a one-shot test or alternate persona:
 
 ```bash
-XHS_AMAZON_CONFIG=/tmp/walmart-config.json \
-  python3 ~/.claude/skills/amazon-xhs-poster/scripts/init-day.py
+WAYAMZPOST_CONFIG=/tmp/walmart-config.json \
+  python3 ~/.claude/skills/wayamzpost/scripts/init-day.py
 ```
 
 For production: drop a working config at the default path and forget about

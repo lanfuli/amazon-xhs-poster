@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for amazon-xhs-poster validation/skeleton tests.
+"""Shared pytest fixtures for wayamzpost validation/skeleton tests.
 
 Provides:
 - skill_root: path to the skill root (auto-detected via pytest rootdir)
@@ -293,7 +293,7 @@ def run_init_day():
     """Run init-day.py and return (returncode, stdout, stderr)."""
     def _run(config_path, date="2026-05-07"):
         env = os.environ.copy()
-        env["XHS_AMAZON_CONFIG"] = str(config_path)
+        env["WAYAMZPOST_CONFIG"] = str(config_path)
         result = subprocess.run(
             [sys.executable, str(SCRIPTS_DIR / "init-day.py"), "--date", date],
             capture_output=True, text=True, env=env,

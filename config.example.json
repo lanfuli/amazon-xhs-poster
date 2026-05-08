@@ -1,6 +1,6 @@
 {
   "$schema_version": "1.0",
-  "_comment": "Copy this file to ~/.config/amazon-xhs-poster/config.json (or anywhere and set XHS_AMAZON_CONFIG=<path>). Edit persona / paths / forbidden lists for your account. The skill reads --config <path> first, then $XHS_AMAZON_CONFIG, then the default location.",
+  "_comment": "Copy this file to ~/.config/wayamzpost/config.json (or anywhere and set WAYAMZPOST_CONFIG=<path>). Edit persona / paths / forbidden lists for your account. The skill reads --config <path> first, then $WAYAMZPOST_CONFIG, then the default location. Legacy XHS_AMAZON_CONFIG / ~/.config/amazon-xhs-poster/config.json are accepted as fallbacks.",
 
   "persona": {
     "brand_cn": "REPLACE_ME — your Xiaohongshu account brand string in Chinese (e.g. 文森特在美国)",
@@ -59,7 +59,7 @@
   },
 
   "paths": {
-    "drafts_root": "~/xhs-amazon-drafts",
+    "drafts_root": "~/wayamzpost-drafts",
     "desktop_root": "",
     "history_lookback_days": 30
   },
@@ -74,7 +74,7 @@
   "_gated_sources_help": "Optional: pull research signal from login-protected services (X, LinkedIn, wearesellers.com) using a persistent Playwright browser profile. First run: `node scripts/fetch-gated.mjs --setup` opens a Chrome window for you to log in once; cookies persist in browser_profile_dir. Daily runs: `node scripts/fetch-gated.mjs --date YYYY-MM-DD` fetches headless, writes <drafts_root>/<DATE>/research/gated-signal.md. RISK: automating logged-in access may violate ToS and can risk account suspension. Use only for personal research; never share cookies. See references/gated-sources.md.",
   "gated_sources": {
     "enabled": false,
-    "browser_profile_dir": "~/.config/amazon-xhs-poster/browser-profile",
+    "browser_profile_dir": "~/.config/wayamzpost/browser-profile",
     "lookback_hours": 24,
     "fetch_delay_seconds": [3, 8],
 

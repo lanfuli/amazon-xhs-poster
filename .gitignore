@@ -5,6 +5,7 @@ config.json
 
 # Drafts output — these are per-day artifacts, not source
 drafts/
+wayamzpost-drafts/
 xhs-amazon-drafts/
 
 # OS / editor cruft

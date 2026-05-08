@@ -3,7 +3,7 @@
   "version": "1.7.0",
   "private": true,
   "type": "module",
-  "description": "wayamzpost — Claude Code skill (skill identifier: amazon-xhs-poster). Daily Amazon-seller content engine: 6-fetcher gated-source pipeline (X / LinkedIn / wearesellers / BDS / Walmart / YouTube) + monthly source-decay audit + multi-platform card rendering (Xiaohongshu / Lemon8 / LinkedIn / X / Instagram), bilingual zh/en.",
+  "description": "wayamzpost — Claude Code skill (skill identifier: wayamzpost). Daily Amazon-seller content engine: 6-fetcher gated-source pipeline (X / LinkedIn / wearesellers / BDS / Walmart / YouTube) + monthly source-decay audit + multi-platform card rendering (Xiaohongshu / Lemon8 / LinkedIn / X / Instagram), bilingual zh/en.",
   "scripts": {
     "fetch:setup": "node scripts/fetch-gated.mjs --setup",
     "fetch": "node scripts/fetch-gated.mjs",

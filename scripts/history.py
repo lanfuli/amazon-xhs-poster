@@ -7,8 +7,10 @@ Reads `paths.drafts_root` and `paths.history_lookback_days` from config.json
 
 Resolution order for config:
   1. --config <path>
-  2. XHS_AMAZON_CONFIG env var
-  3. ~/.config/amazon-xhs-poster/config.json
+  2. WAYAMZPOST_CONFIG env var
+  3. XHS_AMAZON_CONFIG env var (legacy)
+  4. ~/.config/wayamzpost/config.json
+  5. ~/.config/amazon-xhs-poster/config.json (legacy)
 """
 from __future__ import annotations
 
@@ -46,17 +48,23 @@ DEFAULT_ANGLE_KEYWORDS = [
     "选品", "新品", "上架", "投放", "测款",
 ]
 
-DEFAULT_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
+DEFAULT_CONFIG_PATH = Path("~/.config/wayamzpost/config.json").expanduser()
+LEGACY_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
 
 
 def resolve_config_path(cli_path: str | None) -> Path | None:
     if cli_path:
         return Path(cli_path).expanduser().resolve()
-    env = os.environ.get("XHS_AMAZON_CONFIG")
+    env = os.environ.get("WAYAMZPOST_CONFIG")
     if env:
         return Path(env).expanduser().resolve()
+    legacy_env = os.environ.get("XHS_AMAZON_CONFIG")
+    if legacy_env:
+        return Path(legacy_env).expanduser().resolve()
     if DEFAULT_CONFIG_PATH.exists():
         return DEFAULT_CONFIG_PATH
+    if LEGACY_CONFIG_PATH.exists():
+        return LEGACY_CONFIG_PATH
     return None
 
 
@@ -164,7 +172,7 @@ def render_markdown(payload: dict, keywords: list[str]) -> str:
     total = len(rows)
 
     lines = [
-        "# Recent Amazon XHS History",
+        "# Recent wayamzpost History",
         "",
         f"Lookback: last {window} days. Total: {total} post(s).",
         "",
