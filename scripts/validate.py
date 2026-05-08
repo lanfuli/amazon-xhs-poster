@@ -593,6 +593,16 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
                 f"(platform={platform!r}): {eff_len}{note}"
             )
 
+    # X / Threads: must have EITHER content (single tweet) OR thread (multi-post),
+    # otherwise the post has no body. Surface this clearly instead of letting the
+    # downstream must_contain check fire with a misleading "must mention Amazon"
+    # error when the body simply doesn't exist.
+    if preset.get("supports_thread") and not content and not thread:
+        errors.append(
+            f"platform {platform!r} requires xhs.content (single tweet) "
+            f"or xhs.thread[] (multi-post thread) to be non-empty; both are empty"
+        )
+
     # Thread mode (X / Threads). Each post must respect body_max.
     if preset.get("supports_thread") and thread:
         # X-specific: content and thread are mutually exclusive

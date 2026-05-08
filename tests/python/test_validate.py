@@ -340,3 +340,21 @@ def test_zh_post_with_en_must_contain(write_config, make_post, run_validate, tmp
     # Just assert it doesn't crash; the behavior is a function of the case-insensitive corpus check.
     assert isinstance(payload, dict)
     assert "errors" in payload
+
+
+def test_x_empty_content_and_thread_clear_error(write_config, make_post, run_validate, tmp_path):
+    """Regression: X post with neither xhs.content nor xhs.thread used to
+    fire a misleading 'must mention Amazon' error because the body
+    didn't exist to scan. Should now fail with a clear 'requires
+    xhs.content or xhs.thread' error."""
+    cfg_path = write_config(platform="x", output_language="en")
+    post_path, post = make_post(platform="x", language="en")
+    post["xhs"]["content"] = ""
+    post["xhs"]["thread"] = []
+    post_path.write_text(json.dumps(post, ensure_ascii=False))
+    payload, rc = run_validate(post_path, cfg_path)
+    assert rc != 0
+    assert any(
+        "requires xhs.content" in e and "xhs.thread" in e
+        for e in payload["errors"]
+    ), f"expected clear empty-body error, got {payload['errors']}"
