@@ -202,7 +202,12 @@ function renderHtmlV4(card, theme, index, total) {
     `<span class="prog-seg ${i <= index ? 'on' : ''}"></span>`
   ).join('');
 
-  const htmlLang = (root.language || 'zh').toLowerCase() === 'en' ? 'en' : 'zh-CN';
+  // Hero card kicker is a small label rendered top-right next to the
+  // eyebrow chip. Language-aware so zh-mode posts don't get an English
+  // "SELLER MEMO" label sitting next to a Chinese eyebrow.
+  const lang = (root.language || 'zh').toLowerCase() === 'en' ? 'en' : 'zh';
+  const heroKicker = lang === 'en' ? 'SELLER MEMO' : '卖家笔记';
+  const htmlLang = lang === 'en' ? 'en' : 'zh-CN';
   return `<!doctype html>
 <html lang="${htmlLang}">
 <head>
@@ -450,7 +455,7 @@ ${isHero ? `
       <div class="content">
         <div class="meta">
           <div class="chip">${eyebrow}</div>
-          ${isHero ? '<div class="kicker">SELLER MEMO</div>' : ''}
+          ${isHero ? `<div class="kicker">${heroKicker}</div>` : ''}
         </div>
         <h1 class="headline"><span class="hl">${headline}</span></h1>
         ${bodyHtml}
