@@ -380,12 +380,14 @@ Initial public release. Single platform (Xiaohongshu), Chinese-first.
 - Generate-only by default; opt-in `publish_adapter` hook for those
   who genuinely want to automate publishing.
 
-[v1.5.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.0...main
-[v1.4.2]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.1...v1.4.2
-[v1.4.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.4.0...v1.4.1
-[v1.4.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.1...v1.4.0
-[v1.3.1]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.3.0...v1.3.1
-[v1.3.0]: https://github.com/lanfuli/amazon-xhs-poster/releases/tag/v1.3.0
-[v1.2.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.1.0...v1.2.0
-[v1.1.0]: https://github.com/lanfuli/amazon-xhs-poster/compare/v1.0.0...v1.1.0
-[v1.0.0]: https://github.com/lanfuli/amazon-xhs-poster/releases/tag/v1.0.0
+[v1.7.0]: https://github.com/lanfuli/wayamzpost/compare/v1.6.0...main
+[v1.6.0]: https://github.com/lanfuli/wayamzpost/compare/v1.5.0...v1.6.0
+[v1.5.0]: https://github.com/lanfuli/wayamzpost/compare/v1.4.2...v1.5.0
+[v1.4.2]: https://github.com/lanfuli/wayamzpost/compare/v1.4.1...v1.4.2
+[v1.4.1]: https://github.com/lanfuli/wayamzpost/compare/v1.4.0...v1.4.1
+[v1.4.0]: https://github.com/lanfuli/wayamzpost/compare/v1.3.1...v1.4.0
+[v1.3.1]: https://github.com/lanfuli/wayamzpost/compare/v1.3.0...v1.3.1
+[v1.3.0]: https://github.com/lanfuli/wayamzpost/releases/tag/v1.3.0
+[v1.2.0]: https://github.com/lanfuli/wayamzpost/compare/v1.1.0...v1.2.0
+[v1.1.0]: https://github.com/lanfuli/wayamzpost/compare/v1.0.0...v1.1.0
+[v1.0.0]: https://github.com/lanfuli/wayamzpost/releases/tag/v1.0.0

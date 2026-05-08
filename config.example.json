@@ -110,9 +110,9 @@
       "top_n": 5
     },
 
-    "_bds_help": "billiondollarsellers.com (BDS) is a paid newsletter for Amazon sellers (Bezos's 'your margin is my opportunity' demographic). Body IS paywalled, but if your real Chrome (the one fetch-gated.mjs connects via --connect-cdp) is logged into a paid subscription, the body extracts cleanly via the #content-blocks selector. Set enabled=false if you don't have a subscription — leaving it enabled without a subscription will produce 'body not extracted' lines, not crashes. Verified working 2026-05-07.",
+    "_bds_help": "billiondollarsellers.com (BDS) is a paid newsletter. Body IS paywalled. If your real Chrome (the one fetch-gated.mjs connects via --connect-cdp) is logged into a paid subscription, the body extracts cleanly via #content-blocks. Default disabled — flip to true ONLY if you have a subscription, otherwise gated-signal.md will accumulate 'body not extracted' lines.",
     "bds": {
-      "enabled": true,
+      "enabled": false,
       "top_n": 5
     },
 

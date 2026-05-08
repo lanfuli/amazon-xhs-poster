@@ -85,9 +85,11 @@ const SOURCES = [
     label: 'Amazon Ads newsroom',
   },
   {
-    url: 'https://advertising.amazon.com/blog',
+    // Old /blog 301-redirects to /resources/library since at least 2026-05.
+    // editorial-sop.md uses the canonical URL.
+    url: 'https://advertising.amazon.com/resources/library',
     tier: 'B',
-    label: 'Amazon Ads blog',
+    label: 'Amazon Ads resources/library (old /blog)',
   },
   {
     url: 'https://buywithprime.amazon.com/blog',
@@ -143,10 +145,50 @@ async function probe(source) {
   return { ...source, status, contentLength, mostRecentDate, staleHint, error, elapsedMs, finalUrl, redirected };
 }
 
+// Categorize a redirect as benign (trailing-slash, http→https, same-domain
+// canonical) vs concerning (hostname change, redirected to bare homepage,
+// path completely rewritten). Used to suppress noisy flags from sites that
+// add UTM params or normalize URLs.
+function redirectKind(source, finalUrl) {
+  if (!finalUrl || finalUrl === source.url) return 'none';
+  try {
+    const a = new URL(source.url);
+    const b = new URL(finalUrl);
+    if (a.hostname !== b.hostname) return 'different-host';
+    if (b.pathname === '/' && a.pathname !== '/') return 'to-homepage';
+    if (a.pathname.replace(/\/$/, '') === b.pathname.replace(/\/$/, '')) return 'trailing-slash';
+    if (a.pathname.toLowerCase() === b.pathname.toLowerCase()) return 'case-only';
+    return 'path-rewrite';
+  } catch {
+    return 'parse-error';
+  }
+}
+
+// Re-probe a URL once if its first probe looked redirected, to filter
+// out transient CDN flips. amz123 has been observed doing this — one
+// request gets a redirect to /, the next a clean 200. If the re-probe
+// agrees with the first, the redirect is real; if not, treat as
+// transient and trust the second result.
+async function reprobeIfRedirected(result) {
+  if (!result.redirected) return result;
+  await new Promise(r => setTimeout(r, 500));
+  const second = await probe({ url: result.url, tier: result.tier, label: result.label, dateRegex: result.dateRegex });
+  if (!second.redirected) {
+    return { ...second, _firstProbeRedirected: true, _note: 'transient redirect on first probe; second probe was clean' };
+  }
+  return result;
+}
+
 function isProblem(r) {
   if (r.error) return true;
   if (r.status >= 400) return true;
-  if (r.redirected && !/\?utm/.test(r.finalUrl)) return true;  // 301/302 → likely renamed
+  if (r.redirected) {
+    const kind = redirectKind(r, r.finalUrl);
+    // Trailing-slash and case-only redirects are benign — don't flag.
+    if (kind === 'trailing-slash' || kind === 'case-only') return false;
+    // Everything else (different host, to homepage, path rewrite) is a real rename.
+    return true;
+  }
   if (r.staleHint?.startsWith('STALE')) return true;
   if (r.contentLength < 500) return true;  // suspicious empty page
   return false;
@@ -159,7 +201,9 @@ function isProblem(r) {
   for (let i = 0; i < SOURCES.length; i += 4) {
     const batch = SOURCES.slice(i, i + 4);
     const batchResults = await Promise.all(batch.map(probe));
-    results.push(...batchResults);
+    // Re-probe any redirected results once to filter out transient CDN flips.
+    const settled = await Promise.all(batchResults.map(reprobeIfRedirected));
+    results.push(...settled);
   }
 
   if (FORMAT_JSON) {

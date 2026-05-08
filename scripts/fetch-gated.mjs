@@ -56,7 +56,9 @@ const CONNECT_CDP = flag('--connect-cdp');
 const CDP_URL = opt('--connect-cdp') || 'http://127.0.0.1:9222';
 
 if (flag('-h') || flag('--help')) {
-  console.log(`fetch-gated.mjs — fetch X / LinkedIn / wearesellers / BDS content
+  console.log(`fetch-gated.mjs — fetch research signal from 6 sources:
+  X / Twitter, LinkedIn, wearesellers.com, billiondollarsellers.com,
+  corporate.walmart.com news, YouTube creator-signal.
 
 USAGE
   --setup            First run: open headed Playwright Chromium (separate

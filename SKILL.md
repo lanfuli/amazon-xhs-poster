@@ -82,7 +82,13 @@ Follow [`prompts/research-stage.md`](prompts/research-stage.md):
 2. Apply the 14-day rotation in [`references/angle-rotation.md`](references/angle-rotation.md)
    to pick today's `topic.category`.
 3. Find a sharp topic in that category; gather 2–5 real `https://` source
-   URLs.
+   URLs from the Tier ladder in
+   [`references/editorial-sop.md`](references/editorial-sop.md). Tier A
+   (public, dated, automation-friendly) and Tier B (public, no listing
+   dates) are the day-to-day candidates. Tier C (gated; X / LinkedIn /
+   wearesellers / BDS / Walmart corp news / YouTube creator-signal) is
+   automated via `fetch-gated.mjs` if the user has it enabled — see the
+   "Optional gated-source pipeline" section below.
 4. Write `research/topic.md` and fill `post.json.topic` (category, angle,
    why_now, selection_reason, sources).
 
@@ -148,6 +154,58 @@ set. See [`references/publish-adapter.md`](references/publish-adapter.md).
 **Read that doc fully before enabling — getting bot-flagged is a real
 risk.**
 
+## Optional gated-source pipeline
+
+When `config.gated_sources.enabled = true`, the skill ships a 6-fetcher
+research pipeline that pulls structured signal into
+`<job_dir>/research/gated-signal.md` for Stage 1 to fold into `topic.md`.
+**Disabled by default** — automating logged-in services has real ToS /
+account-suspension risk. Read [`references/gated-sources.md`](references/gated-sources.md)
+before enabling.
+
+The 6 fetchers (run in one command):
+
+| Source                       | Auth needed?       | What it pulls                                  |
+|------------------------------|--------------------|------------------------------------------------|
+| X / Twitter                  | Real Chrome (CDP)  | Recent tweets from configured handles          |
+| LinkedIn                     | Real Chrome (CDP)  | Recent activity from configured profile slugs  |
+| wearesellers.com             | Real Chrome (CDP)  | Top hot non-paid threads with body extraction  |
+| billiondollarsellers.com     | Real Chrome (CDP)  | Top archive articles (subscribers see body)    |
+| corporate.walmart.com        | Public             | Top recent news via `news.sitemap.xml`         |
+| YouTube                      | Real Chrome (CDP)  | Recent videos from configured channel handles  |
+
+Setup (one-time):
+
+```bash
+# 1. Launch a separate Chrome with debug port enabled.
+#    NOTE: this quits any running Chrome and relaunches with a dedicated
+#    debug profile. Save your tabs first.
+bash ${SKILL_DIR}/scripts/launch-chrome-debug.sh
+
+# 2. In that Chrome, log in to: x.com, linkedin.com, wearesellers.com,
+#    billiondollarsellers.com.  YouTube + Walmart are public.
+
+# 3. Daily fetch:
+node ${SKILL_DIR}/scripts/fetch-gated.mjs --connect-cdp [--date YYYY-MM-DD]
+```
+
+Output: `<drafts_root>/<DATE>/research/gated-signal.md`. Editorial stage
+folds relevant items into `topic.md` and `post.json.topic.sources[]`.
+
+## Source-decay audit
+
+Public Tier A/B URLs bit-rot. Run monthly to catch decay:
+
+```bash
+node ${SKILL_DIR}/scripts/audit-sources.mjs            # full report
+node ${SKILL_DIR}/scripts/audit-sources.mjs --quiet    # only flagged
+node ${SKILL_DIR}/scripts/audit-sources.mjs --json     # machine-readable
+```
+
+Hits all 11 Tier A/B URLs with plain `fetch()`, reports HTTP / size /
+last-seen date, flags 4xx, redirects, suspiciously small payloads, and
+content older than 90 days. Exits non-zero on any flag.
+
 ## Quick triggers (when to invoke)
 
 - "写小红书 amazon post" / "亚马逊小红书" / "xhs amazon" / "来一篇亚马逊笔记"
@@ -199,16 +257,17 @@ X), per-platform editorial guidance, and cross-posting workflow.
 amazon-xhs-poster/
 ├── SKILL.md                    (this file)
 ├── README.md                   (install + first-run; user-facing)
-├── config.example.json         (copy and fill)
+├── config.example.json         (zh-default; copy and fill)
+├── config-en.example.json      (en-default; copy if output_language="en")
 ├── references/
-│   ├── editorial-sop.md
+│   ├── editorial-sop.md        (Tier A/B/C/D source ladder + workflow)
 │   ├── angle-rotation.md
 │   ├── title-and-cta-patterns.md
 │   ├── card-schema.md
 │   ├── voice-and-persona.md
 │   ├── customization.md
 │   ├── platforms.md            (per-platform limits + workflow)
-│   ├── gated-sources.md        (optional X/LinkedIn/wearesellers auto-fetch)
+│   ├── gated-sources.md        (X/LinkedIn/wearesellers/BDS/Walmart/YouTube auto-fetch)
 │   └── publish-adapter.md
 ├── prompts/
 │   ├── research-stage.md
@@ -219,12 +278,17 @@ amazon-xhs-poster/
 │   ├── validate.py             (Stage 3 gate; reads PLATFORM_PRESETS)
 │   ├── render.mjs              (Stage 3; skips when cards is empty)
 │   ├── make-post-md.py         (Stage 5; per-platform output layout)
-│   └── fetch-gated.mjs         (optional Stage 1 helper; Playwright + persistent profile)
+│   ├── fetch-gated.mjs         (optional Stage 1 helper; 6 fetchers via CDP)
+│   ├── launch-chrome-debug.sh  (one-shot launcher for fetch-gated CDP attach)
+│   └── audit-sources.mjs       (monthly Tier A/B URL decay check)
 └── examples/
-    ├── post.example.json            (xiaohongshu / ZH canonical)
-    ├── post-en.example.json         (xiaohongshu / EN)
-    ├── post-linkedin.example.json   (linkedin / EN)
-    ├── post-x.example.json          (x / EN thread)
-    ├── post-instagram.example.json  (instagram / EN)
-    └── persona.example.json         (alternate persona block)
+    ├── post.example.json                (xiaohongshu / ZH canonical)
+    ├── post-en.example.json             (xiaohongshu / EN)
+    ├── post-linkedin.example.json       (linkedin / EN)
+    ├── post-linkedin-zh.example.json    (linkedin / ZH)
+    ├── post-x.example.json              (x / EN thread)
+    ├── post-x-zh.example.json           (x / ZH thread)
+    ├── post-instagram.example.json      (instagram / EN)
+    ├── post-instagram-zh.example.json   (instagram / ZH)
+    └── persona.example.json             (alternate persona block)
 ```

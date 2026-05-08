@@ -1,0 +1,135 @@
+{
+  "$schema_version": "1.0",
+  "_comment": "EN-default variant of config.example.json. Use this if your output_language is 'en' (Lemon8 / LinkedIn / X / Instagram, English audience). For zh-default (Xiaohongshu native), use config.example.json instead. Same schema, just EN-friendly defaults: persona placeholders are English, must_contain is ['Amazon'], forbidden_brands_in_copy doesn't include the original author's zh-only entries. Copy this file to ~/.config/amazon-xhs-poster/config.json (or set XHS_AMAZON_CONFIG=<path>) and fill in your persona.",
+
+  "persona": {
+    "brand_cn": "REPLACE_ME — your account display name (e.g. 'Vincent in Seattle')",
+    "identity": "REPLACE_ME — one-line operator backstory (e.g. '10-year Amazon seller, Seattle WA')",
+    "voice": "restrained, practical, no chicken-soup fluff — like a lead operator running a team",
+    "signature": "REPLACE_ME — usually same as brand_cn",
+    "location": "Seattle, WA",
+    "years_experience": 10
+  },
+
+  "output_language": "en",
+  "_output_language_help": "en = English output (default for Lemon8 / LinkedIn / X / Instagram). zh = Chinese output (use config.example.json for that). Switching output_language auto-flips must_contain / cta_tokens / decision_verbs to language-appropriate defaults below — but you can override any of those explicitly.",
+
+  "platform": "xiaohongshu",
+  "_platform_help": "Default 'xiaohongshu' so the post-en.example.json (XHS-shaped EN example) validates against this config out-of-the-box. EN users on a different platform: change this to 'lemon8' / 'linkedin' / 'x' / 'instagram' AND raise title_constraints.max_chars to match (default 20 is the XHS soft cap; LinkedIn / X / IG accept much longer titles). See references/platforms.md.",
+
+  "title_constraints": {
+    "max_chars": 20,
+    "must_contain": ["Amazon"]
+  },
+  "_title_help": "20 chars is the Xiaohongshu soft cap. Increase for other platforms: lemon8 → 30, linkedin / x / instagram → 60+. The validator hard-fails titles longer than max_chars.",
+
+  "_cta_tokens_help": "Optional override. EN default: ['like', 'save', 'follow', 'comment', 'share', 'subscribe']. ZH default: ['点赞', '收藏', '关注', '不迷路', '评论']. Leave null to use language default.",
+  "cta_tokens": null,
+
+  "_decision_verbs_help": "Optional override for the ai-workflow card 5 decision-verb soft-warn. EN default: ['decide', 'switch', 'pause', 'stop', 'increase budget', 'remove', 'select', 'transfer', 'rebuild', 'cut', 'promote', 'keep', 'kill']. ZH default: ['决定', '判断', '换', '停', '加预算', '下架', '挑选', '暂停', '转移', '重组', '砍', '上架', '留'].",
+  "decision_verbs": null,
+
+  "forbidden_brands_in_copy": [
+    "your-internal-tool-name",
+    "your-internal-product",
+    "your-deprecated-brand"
+  ],
+  "_forbidden_brands_help": "Replace these placeholders with names of your internal tools, products, or deprecated brands that you specifically don't want leaking into public copy. The validator hard-fails if any of these tokens appear in the post.",
+
+  "forbidden_source_tokens": [
+    "billion dollar sellers",
+    "we are sellers",
+    "amz123",
+    "bds",
+    "wearesellers",
+    "billiondollarsellers",
+    "helium 10 podcast",
+    "marketplace pulse",
+    "modern retail",
+    "ppc land"
+  ],
+
+  "angle_quotas": {
+    "amazon-news":           { "floor": 2, "ceiling": 5, "color": "amber"  },
+    "white-hat-tactic":      { "floor": 2, "ceiling": 5, "color": "green"  },
+    "risk-warning":          { "floor": 2, "ceiling": 5, "color": "red"    },
+    "ai-workflow":           { "floor": 2, "ceiling": 4, "color": "blue"   },
+    "walmart-multi-channel": { "floor": 1, "ceiling": 3, "color": "slate"  },
+    "creator-signal":        { "floor": 0, "ceiling": 2, "color": "violet" }
+  },
+
+  "paths": {
+    "drafts_root": "~/amazon-post-drafts",
+    "desktop_root": "",
+    "history_lookback_days": 30
+  },
+
+  "extra_angle_keywords": [],
+
+  "publish_adapter": {
+    "enabled": false,
+    "module_path": null
+  },
+
+  "_gated_sources_help": "Optional research pipeline. When enabled, fetch-gated.mjs walks 6 sources daily and writes <drafts_root>/<DATE>/research/gated-signal.md. RISK: automating logged-in access (X / LinkedIn) may violate ToS. Read references/gated-sources.md before enabling.",
+  "gated_sources": {
+    "enabled": false,
+    "browser_profile_dir": "~/.config/amazon-xhs-poster/browser-profile",
+    "lookback_hours": 24,
+    "fetch_delay_seconds": [3, 8],
+
+    "x": {
+      "enabled": true,
+      "_handle_help": "X usernames cap at 15 chars. Verify each handle exists at x.com before adding.",
+      "handles": [
+        { "handle": "AmazonNews",      "tier": "official" },
+        { "handle": "AmazonAds",       "tier": "official" },
+        { "handle": "AmazonASGTG",     "tier": "community" },
+        { "handle": "MarketplacePuls", "tier": "analyst" },
+        { "handle": "juokaz",          "tier": "analyst" },
+        { "handle": "retailgeek",      "tier": "analyst" },
+        { "handle": "spencersoper",    "tier": "press" }
+      ]
+    },
+
+    "linkedin": {
+      "enabled": true,
+      "_help": "Copy the slug from linkedin.com/in/<slug>/. Note: vanity slug isn't always the canonical (Andy Jassy is /in/andy-jassy-8b1615/, not /in/andyjassy/).",
+      "profiles": [
+        { "name": "Andy Jassy",        "slug": "andy-jassy-8b1615" },
+        { "name": "Doug Herrington",   "slug": "doug-herrington" },
+        { "name": "Dharmesh Mehta",    "slug": "dharmeshmmehta" },
+        { "name": "Juozas Kaziukenas", "slug": "juozas" },
+        { "name": "Steve Pope",        "slug": "steven-pope" },
+        { "name": "Bradley Sutton",    "slug": "h10bradley" }
+      ]
+    },
+
+    "_wearesellers_help": "Chinese-language seller community. EN users may prefer to disable since the fetched content is in Chinese.",
+    "wearesellers": {
+      "enabled": false,
+      "top_n": 5
+    },
+
+    "_bds_help": "billiondollarsellers.com paid newsletter. Default disabled — flip to true ONLY if you have a subscription.",
+    "bds": {
+      "enabled": false,
+      "top_n": 5
+    },
+
+    "_walmart_help": "PUBLIC. corporate.walmart.com/news.sitemap.xml is dated XML; fetcher takes top N by lastmod and Playwright-extracts body.",
+    "walmart": {
+      "enabled": true,
+      "top_n": 3
+    },
+
+    "_youtube_help": "PUBLIC. RSS endpoint returns 404 from many regions; fetcher uses Playwright via CDP to scrape /@<handle>/videos.",
+    "youtube": {
+      "enabled": true,
+      "channels": [
+        { "name": "Helium 10",     "handle": "Helium10",    "channel_id": "UCpBvckYg2UXArcfzRcjpPjw" },
+        { "name": "My Amazon Guy", "handle": "MyAmazonGuy", "channel_id": "UClUSEsDS2sdgNJfCcCM_5Uw" }
+      ]
+    }
+  }
+}

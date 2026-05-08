@@ -56,9 +56,16 @@ cd ~/.claude/skills/amazon-xhs-poster
 npm install                          # playwright + node tests
 npx playwright install chromium      # one-time, ~150 MB
 
-# 3. Create your config
+# 3. Create your config — pick the variant that matches your default
+#    output language. Both have the same schema; defaults differ.
 mkdir -p ~/.config/amazon-xhs-poster
+
+#    Option A: zh-default (Xiaohongshu native audience):
 cp config.example.json ~/.config/amazon-xhs-poster/config.json
+
+#    Option B: en-default (LinkedIn / X / Instagram / Lemon8 / EN-Xiaohongshu):
+cp config-en.example.json ~/.config/amazon-xhs-poster/config.json
+
 $EDITOR ~/.config/amazon-xhs-poster/config.json
 ```
 
@@ -96,6 +103,12 @@ Off by default. When enabled, `scripts/fetch-gated.mjs` walks 6
 sources daily and writes raw signal into
 `<drafts_root>/<DATE>/research/gated-signal.md`. Editorial stage folds
 relevant items into `topic.md`.
+
+> ⚠ **`launch-chrome-debug.sh` quits any running Chrome and relaunches it
+> with a separate debug profile.** Save your tabs first. The script is
+> idempotent — re-running it while Chrome is already debug-listening just
+> exits early — but the *first* invocation closes your normal Chrome
+> session.
 
 ```bash
 # 1. Flip gated_sources.enabled = true in config.json
