@@ -482,9 +482,11 @@ async function fetchWearesellers() {
     await sleep(2000);
 
     // wearesellers DOM structure (verified 2026-05):
-    //   - Hot post badge: <span class="badge-hot">热</span>
+    //   - Hot post badge: <span class="badge-hot">热</span> (热 = "hot")
     //   - Paid post icon: <img src=".../pay_fee.png"> or pay_high.png
-    //     or pay_fee_black.png (悬赏 / 私密悬赏 / 已公开悬赏)
+    //     or pay_fee_black.png (post types in zh: 悬赏 = "bounty",
+    //     私密悬赏 = "private bounty", 已公开悬赏 = "publicly disclosed
+    //     bounty"). All three are paid; we drop them.
     //
     // We want HOT posts that are NOT paid. The script walks each anchor
     // and inspects its parent row for these markers, then sorts: hot+free
@@ -514,9 +516,10 @@ async function fetchWearesellers() {
 
       const ANCHOR_SEL = 'a[href*="/question/"], a[href*="/headline/"], a[href*="/article/"]';
 
-      // Pass 1: hot anchors. Use spans containing exactly "热" (with class
-      // zd-question for logged-in view, badge-hot for anonymous — both
-      // are accepted).
+      // Pass 1: hot anchors. Match spans whose text is exactly "热"
+      // (the literal Chinese character meaning "hot" — wearesellers
+      // emits this as the hot-post badge text). Class is zd-question
+      // for logged-in view, badge-hot for anonymous; both accepted.
       const hotMarkers = [
         ...document.querySelectorAll('.badge-hot'),
         ...Array.from(document.querySelectorAll('span.zd-question'))
@@ -558,6 +561,7 @@ async function fetchWearesellers() {
     // names from question metadata.
     const looksLikeUsername = (text) => {
       if (text.length > 30) return false;
+      // Regex range U+4E00..U+9FFF covers CJK Unified Ideographs.
       if (/[一-鿿]/.test(text)) return false; // contains Chinese, fine
       if (/^[a-zA-Z0-9_]+$/.test(text)) return true;  // pure handle-like
       return false;

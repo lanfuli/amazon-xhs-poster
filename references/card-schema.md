@@ -57,7 +57,7 @@
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `attention_goal` | string | E.g. "3秒内停留并产生关注/收藏意图". |
+| `attention_goal` | string | E.g. "3秒内停留并产生关注/收藏意图" ("stop the scroll within 3 seconds and trigger follow/save intent"). |
 | `psychology_hooks` | string array | At least one of: loss-aversion, curiosity-gap, identity-mirroring, operator-authority, credible-urgency. |
 | `ai_positioning` | string | Generic AI framing rule for ai-workflow posts. |
 | `dedupe_window_days` | number | Default 30. |
@@ -101,7 +101,7 @@ Array of 6–9 card objects.
 |-------|------|-------|
 | `id` | string | `card_01` … `card_0N`. Drives PNG filename. |
 | `kind` | enum | `hook` / `tension` / `framework` / `checklist` / `ai-angle` / `cta` / `matrix` / `note`. The renderer treats them all uniformly in v4 except for hero-card halo on the first card. `matrix` is reserved (renderer support pending). |
-| `eyebrow` | string | Small label above the headline (e.g. `2026.05  风险预警`). |
+| `eyebrow` | string | Small label above the headline (e.g. `2026.05  风险预警` "risk alert"; in en-mode, `2026.05  Risk Alert`). |
 | `headline` | string | Large title; supports `\n` for line breaks. |
 | `body` | string | Optional supporting paragraph; supports `\n`. |
 | `bullets` | array of strings | Up to 5; renderer ignores beyond 5. |
@@ -109,7 +109,10 @@ Array of 6–9 card objects.
 
 ### Last card extra rules (validator)
 
-- `card[N-1]` must include at least one of: `点赞 / 收藏 / 关注 / 评论 / 不迷路`
+- `card[N-1]` must include at least one of (zh-mode tokens):
+  `点赞 / 收藏 / 关注 / 评论 / 不迷路` (like / save / follow / comment /
+  "don't get lost"). En-mode: `like / save / follow / comment / share /
+  subscribe`. Configurable via `config.cta_tokens`.
 - `card[N-1]` text must be < 70% Levenshtein-similar to any of the past 3 days'
   card N-1 text.
 
@@ -154,10 +157,14 @@ The renderer flips `status.render` to `"done"` after a successful run.
   We Are Sellers, Helium 10 Podcast, Marketplace Pulse, Modern Retail, PPC
   Land — extend with your own)
 - Any token from `config.forbidden_brands_in_copy` (default: openclaw,
-  亚马逊大龙虾, nano banana, lobster mark — these were the original author's
-  internal references; replace with your own internal brand names)
+  亚马逊大龙虾 ("Amazon big lobster"), nano banana, lobster mark — these
+  were the original author's internal references; replace with your own
+  internal brand names)
 
 ## Minimum compliant skeleton
+
+(zh-mode example below; for en-mode, replace `亚马逊` in the title with
+`Amazon` and adjust other strings to English — schema is identical.)
 
 ```json
 {

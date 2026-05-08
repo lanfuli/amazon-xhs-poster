@@ -111,7 +111,8 @@ Used on card 6 (the last card).
 Items in a card?
 │
 ├─ Are they sequential (step 1 → 2 → 3, time-ordered)?
-│   └── YES → use bullets, mention "第N步" / "先 X 再 Y"
+│   └── YES → use bullets. zh: "第N步" (Step N) / "先 X 再 Y" (do X first, then Y);
+│            en: "Step N" / "First X, then Y"
 │
 └─ Are they parallel categories (types, reasons, time windows)?
     └── YES → matrix card (kind: "matrix")
@@ -120,7 +121,9 @@ Items in a card?
 
 ### Trigger phrases for matrix
 
-- Bullets prefixed with `第N种 / 类型N / 第N类 / 第N个原因 / 风险N`
+- Bullets prefixed with (zh) `第N种 / 类型N / 第N类 / 第N个原因 / 风险N`
+  ("Type N / Type N / Category N / Reason N / Risk N") or (en)
+  `Type N / Reason N / Risk N`
 - Each bullet is `X：Y` (label + explanation)
 - Content naturally maps to a 2D table
 
@@ -143,8 +146,9 @@ Items in a card?
 
 **Current status**: the renderer doesn't paint matrix cards yet. Workaround:
 write `kind: "bullets"` with a `qa_notes` entry like
-`"待 matrix 渲染支持后回填"`. Validator will soft-warn when bullets look
-parallel-dimensional but `kind != "matrix"`.
+`"待 matrix 渲染支持后回填"` (zh: "backfill once matrix renderer ships";
+en equivalent: `"backfill once matrix renderer ships"`). Validator will
+soft-warn when bullets look parallel-dimensional but `kind != "matrix"`.
 
 ---
 

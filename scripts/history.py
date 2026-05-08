@@ -22,6 +22,17 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 
+# Topic-deduplication keyword corpus. Intentionally bilingual: zh tokens
+# match zh-mode posts, en tokens match en-mode posts, and code-switched
+# bilingual posts get matched on either side. Translation note for
+# zh-only readers:
+#   关税=tariff, 广告费=ad-fee, 回款=cashback, 现金流=cashflow, 利润=profit,
+#   折扣=discount, 算法=algorithm, 排名=ranking, 买家意图=buyer-intent,
+#   广告=ads, 否词=negative-keyword, 搜索词=search-term, 评论=review,
+#   差评=neg-review, 封号=account-ban, 停售=stop-selling, 断货=stockout,
+#   库存=inventory, 供应链=supply-chain, 越南/印度/墨西哥=Vietnam/India/Mexico,
+#   选品=product-selection, 新品=new-product, 上架=listing-launch,
+#   投放=ad-placement, 测款=test-product.
 DEFAULT_ANGLE_KEYWORDS = [
     "关税", "tariff", "广告费", "回款", "现金流", "利润", "折扣",
     "COSMO", "Rufus", "算法", "排名", "买家意图", "search", "ranking",

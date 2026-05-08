@@ -18,10 +18,10 @@ Open your `config.json` and edit the `persona` block:
 
 ```json
 "persona": {
-  "brand_cn": "你的小红书账号品牌串",
-  "identity": "一行人设描述（行业 + 经验 + 视角）",
-  "voice": "3-5 个文风关键词，逗号分隔",
-  "signature": "卡片底部签名，通常等于 brand_cn",
+  "brand_cn": "Your Xiaohongshu account brand string (CJK or Latin)",
+  "identity": "One-line persona description (industry + years + perspective)",
+  "voice": "3-5 voice keywords, comma-separated",
+  "signature": "Footer signature on each card, usually same as brand_cn",
   "location": "City, ST",
   "years_experience": 8
 }
@@ -101,9 +101,10 @@ Card layout (`iphone-notes-editorial-v4`) uses a font stack that handles
 both Chinese (PingFang SC) and Latin scripts (SF Pro Display, Helvetica
 Neue). English content renders correctly without changes; the only
 potentially-Chinese chip labels in the renderer are the theme labels
-(`全球新闻`, `白帽运营`, etc.) which appear by default but are overridden
-when you set `card.eyebrow` explicitly. In practice, EN-mode posts always
-set `eyebrow` per card, so the chip text is never auto-generated Chinese.
+(`全球新闻` "Global News", `白帽运营` "White-Hat Ops", etc.) which are
+emitted in zh-mode by default but get overridden when you set
+`card.eyebrow` explicitly. In practice, EN-mode posts always set
+`eyebrow` per card, so the chip text is never auto-generated Chinese.
 
 ## 4. Title constraints (manual override)
 
@@ -126,14 +127,15 @@ Want this skill to write Walmart-Marketplace content instead?
 
 ```json
 "output_language": "zh",
-"title_constraints": { "max_chars": 20, "must_contain": ["沃尔玛"] }
+"title_constraints": { "max_chars": 20, "must_contain": ["沃尔玛"] }  // Walmart in CN
 ```
 
 You'll also want to:
 - Edit your `angle_quotas` to be Walmart-shaped (e.g. drop ai-workflow
   ceiling, add `walmart-suppliers` floor).
-- The patterns examples in `references/title-and-cta-patterns.md` use
-  亚马逊/Amazon — adapt mentally or fork the doc.
+- The pattern examples in `references/title-and-cta-patterns.md` are
+  Amazon-themed (亚马逊 in zh / "Amazon" in en) — adapt mentally or
+  fork the doc.
 
 ## 5. Forbidden brands and source tokens (privacy)
 
@@ -154,9 +156,9 @@ copy. Defaults are placeholder examples from the original author —
 ]
 ```
 
-The defaults (`openclaw`, `亚马逊大龙虾`, `nano banana`, `lobster mark`) are
-specific to the original author's environment — clean them out unless you
-genuinely want them blocked too.
+The defaults (`openclaw`, `亚马逊大龙虾` "Amazon big lobster",
+`nano banana`, `lobster mark`) are specific to the original author's
+environment — clean them out unless you genuinely want them blocked too.
 
 ### `forbidden_source_tokens`
 

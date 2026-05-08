@@ -2,17 +2,32 @@
 """Render `post.md` from `post.json` + `cards/render_manifest.json`.
 
 The markdown file is what the user actually opens on their phone (or copy-
-pastes into the Xiaohongshu app) when publishing manually:
+pastes into the Xiaohongshu app) when publishing manually. The headers
+are emitted in the language picked by `config.output_language`.
 
-  # 小红书亚马逊主题 — YYYY-MM-DD
-  ## 标题       <xhs.title>
-  ## 正文       <xhs.content verbatim, with \\n preserved>
+zh-mode example output:
+
+  # 小红书亚马逊主题 — YYYY-MM-DD       (= "Xiaohongshu Amazon Topic")
+  ## 标题       <xhs.title>             (= "Title")
+  ## 正文       <xhs.content verbatim>   (= "Body")
   ## Hashtags   <space-joined #tags>
-  ## 卡片清单   - card_01.png
+  ## 卡片清单   - card_01.png            (= "Card list")
                 - card_02.png
                 ...
   ---
-  生成于 <ISO timestamp PT> · 发布方式：手动上传到小红书 APP
+  生成于 <ts> · 发布方式：手动上传到小红书 APP
+  (= "Generated at <ts> · Publish: manually upload to Xiaohongshu app")
+
+en-mode example output (same shape, English headers):
+
+  # Amazon Seller Note — YYYY-MM-DD
+  ## Title      <xhs.title>
+  ## Body       <xhs.content verbatim>
+  ## Hashtags   <space-joined #tags>
+  ## Cards      - card_01.png
+                ...
+  ---
+  Generated at <ts> · Publish: manual upload to Xiaohongshu app
 
 Writes to <job_dir>/post.md unless --output is given.
 """

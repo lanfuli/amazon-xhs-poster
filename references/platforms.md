@@ -19,7 +19,7 @@ works:
 | xiaohongshu  | ✓ default                 | ✓ EN-on-XHS (rare but works) |
 | lemon8       | ✓ ZH on Lemon8            | ✓ EN-Lemon8 (default for EN carousel) |
 | linkedin     | ✓ Chinese B2B / cross-border | ✓ Western B2B            |
-| x            | ✓ 中文推 (CJK weight × 2) | ✓ standard                |
+| x            | ✓ Chinese tweets (CJK weight × 2) | ✓ standard                |
 | instagram    | ✓ Chinese caption         | ✓ standard                |
 
 The matrix is full-coverage: pick whichever language + platform combination
@@ -49,7 +49,8 @@ The original target. Optimized for the Chinese Xiaohongshu audience: short
 title, image-first carousel, hashtag block in body for search reach.
 
 - Title: ≤ 20 chars, must contain a token from
-  `config.title_constraints.must_contain` (default `["亚马逊"]`)
+  `config.title_constraints.must_contain` (zh-default `["亚马逊"]`,
+  i.e. "Amazon" in zh; en-default `["Amazon"]`)
 - Body: no enforced cap (XHS soft-limits around ~1000 chars; the editorial
   pattern produces 600–900)
 - Hashtags: 5–10, each ≤ 12 chars, ≥ 60% must share token with topic
@@ -125,9 +126,10 @@ The validator computes weighted length for X automatically. If your
 tweet exceeds 280 weight, the error message shows both raw chars and
 weight: `xhs.thread[2] exceeds 280 characters: 312 (CJK weighting: 175 chars → 312 weight)`.
 
-`post.md` for X shows weight side-by-side with raw chars on each tweet:
-`**推文 1/6** (82 chars / 133 weight)` — so when you paste each tweet
-into X manually you can verify it's still under 280 weight.
+`post.md` for X shows weight side-by-side with raw chars on each tweet
+(in zh-mode: `**推文 1/6** (82 chars / 133 weight)` where 推文 = tweet;
+in en-mode: `**Tweet 1/6** (...)`) — so when you paste each tweet into
+X manually you can verify it's still under 280 weight.
 
 Other platforms (LinkedIn / Lemon8 / Instagram) use raw character count;
 only X applies CJK weighting.

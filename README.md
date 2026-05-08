@@ -131,9 +131,13 @@ Exits non-zero on any flag — wire into CI for monthly cadence.
 
 ## How to use it
 
-In a Claude Code session, just say:
+In a Claude Code session, just say one of:
+
+> Write an Amazon seller post for Xiaohongshu
 
 > 写一条小红书 amazon post
+
+> linkedin amazon post  (or: x amazon thread / instagram amazon carousel)
 
 Claude will recognize the trigger, follow `SKILL.md`, and walk you
 through all 6 stages (init day → research → editorial → render → QA →

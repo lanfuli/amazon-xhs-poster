@@ -24,7 +24,8 @@ that passes [`scripts/validate.py`](../scripts/validate.py).
 - Pick a title pattern (T1–T8) that hasn't been used in the last 7 days
   per `recent_history.md`.
 - Write a title ≤ 20 chars, must contain at least one keyword from
-  `config.title_constraints.must_contain` (default: `亚马逊`).
+  `config.title_constraints.must_contain` (zh-default: `亚马逊` "Amazon" in zh;
+  en-default: `Amazon`).
 - Optional: log the chosen ID in `post.json.xhs.title_pattern_id`.
 
 ### 2. Six cards (default)
@@ -35,8 +36,8 @@ that passes [`scripts/validate.py`](../scripts/validate.py).
 | 2 | `tension`    | What sellers usually get wrong about this |
 | 3 | `framework`  | What changed / what it really means |
 | 4 | `checklist`  | Concrete actions or SOP changes |
-| 5 | `ai-angle`   | Workflow leverage; if `topic.category="ai-workflow"`, MUST end on a decision verb (决定/判断/换/停/加预算/下架/挑选/暂停/转移/重组/砍/上架/留) |
-| 6 | `cta`        | Action / takeaway / signature; MUST contain one of `点赞/收藏/关注/评论/不迷路` |
+| 5 | `ai-angle`   | Workflow leverage; if `topic.category="ai-workflow"`, MUST end on a decision verb (zh-mode tokens: 决定/判断/换/停/加预算/下架/挑选/暂停/转移/重组/砍/上架/留 — decide/judge/switch/stop/add-budget/take-down/select/pause/transfer/restructure/cut/list/keep; en-mode: decide/switch/pause/stop/increase budget/remove/select/transfer/rebuild/cut/promote/keep/kill; configurable via `config.decision_verbs`) |
+| 6 | `cta`        | Action / takeaway / signature; MUST contain one of `点赞/收藏/关注/评论/不迷路` (zh-mode: like/save/follow/comment/"don't get lost") or en-mode equivalents |
 
 Expand to 7–8 cards only if the topic genuinely needs the room (comparison,
 extra example, recap). Don't pad.
@@ -47,7 +48,7 @@ For each card, set:
 {
   "id": "card_0X",
   "kind": "<kind>",
-  "eyebrow": "<small label, e.g. '触发逻辑' or '今晚就做'>",
+  "eyebrow": "<small label, e.g. zh: '触发逻辑' (trigger logic) or '今晚就做' (do tonight); en: 'Trigger logic' or 'Do tonight'>",
   "headline": "<2-line max, can use \\n>",
   "body": "<supporting paragraph, optional>",
   "bullets": ["...", "...", "..."],
@@ -60,19 +61,25 @@ For each card, set:
 - Pick a CTA ID (CTA1–CTA6) that hasn't appeared on card 6 in the last 3
   days per the on-disk neighbors (the validator will catch the CTA-similarity
   case automatically).
-- Last sentence MUST contain one of `点赞 / 收藏 / 关注 / 评论 / 不迷路`.
+- Last sentence MUST contain one of (zh-mode) `点赞 / 收藏 / 关注 / 评论 / 不迷路`
+  or (en-mode) `like / save / follow / comment / share / subscribe`.
 
 ### 4. Hashtags
 
 5–10 tags, each ≤ 12 chars. Three-tier structure:
 
-- 1–2 brand/persona tags (e.g. `亚马逊`, `<persona-name>`, `亚马逊卖家`)
+- 1–2 brand/persona tags (zh: `亚马逊` "Amazon", `<persona-name>`,
+  `亚马逊卖家` "Amazon seller"; en: `Amazon`, `<persona-name>`,
+  `AmazonSeller`)
 - 3–5 topic-specific tags (must share token with topic.angle / xhs.title /
   card 1–3 headlines)
-- 2–3 broad-SEO tags (e.g. `跨境电商`, `出海`, `美国电商`)
+- 2–3 broad-SEO tags (zh: `跨境电商` "cross-border e-commerce",
+  `出海` "going overseas", `美国电商` "US e-commerce"; en: `Ecommerce`,
+  `DTC`, `OnlineRetail`)
 
 At least one tag must contain a keyword from
-`config.title_constraints.must_contain` (default: `亚马逊`).
+`config.title_constraints.must_contain` (zh-default: `亚马逊` "Amazon" in zh;
+en-default: `Amazon`).
 
 Write tags into `post.json.xhs.tags` AND make sure they're appended to
 `xhs.content` as a trailing hashtag block (`#A #B #C ...`).

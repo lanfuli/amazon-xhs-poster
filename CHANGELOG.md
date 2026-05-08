@@ -260,7 +260,8 @@ Correctness pass + formal test infrastructure.
   body / thread / cards. Now also case-insensitive.
 - **ZH headers in English**: ZH users posting to Instagram / X got
   `## Caption` / `## Thread` (English) inside otherwise-Chinese
-  `post.md`. Translated to `## 正文` / `## 线程` / `## 卡片`.
+  `post.md`. Translated to `## 正文` (Body) / `## 线程` (Thread) /
+  `## 卡片` (Cards).
 - **must_contain case-sensitivity**: `kw in title` was case-sensitive,
   so `must_contain=["Amazon"]` would fail on `title="amazon notes"`.
   All comparisons now `.lower()`-normalized.

@@ -243,9 +243,11 @@ file structured by source:
 - …
 
 ## wearesellers.com — top 5 hot posts
-- **如何应对 Frequently Returned 标签**
+- **如何应对 Frequently Returned 标签**  ("How to handle the Frequently
+  Returned tag" — wearesellers is a Chinese-language seller community,
+  so titles and bodies stay in Chinese in this output file)
   https://www.wearesellers.com/q/...
-  详细回复内容…
+  详细回复内容…  (detailed reply content...)
 ```
 
 This file is **input material** for the Stage 2 editorial work, not the

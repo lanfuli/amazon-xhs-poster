@@ -43,7 +43,7 @@ ladder"). Scan for an angle that is:
 
 Reject:
 - Vague themes ("Amazon is changing")
-- Pure emotion bait ("锁钱 7 天")
+- Pure emotion bait ("锁钱 7 天" / "lock in your money for 7 days")
 - Anything that requires writing step-by-step black-hat instructions
 - Topics where the only "value" is repeating something the official press
   release already said

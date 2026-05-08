@@ -88,6 +88,13 @@ const desktopMetaDir = desktopRoot ? path.join(desktopRoot, 'meta') : null;
 if (desktopCardsDir) await fs.mkdir(desktopCardsDir, { recursive: true });
 if (desktopMetaDir) await fs.mkdir(desktopMetaDir, { recursive: true });
 
+// Theme palette + default chip label per content category.
+// `chip` is the small-label string painted on each card by default
+// (zh-mode strings shown below: "Global News" / "White-Hat Ops" /
+// "Risk Alert" / "AI Productivity" / "Walmart Multi-Channel" /
+// "Xiaohongshu Signal" / "Seller Notes").
+// For en-mode posts, set `card.eyebrow` explicitly per card to override
+// the default — see references/customization.md §3 (Renderer note).
 const themes = {
   'amazon-news': {
     accent: '#C96B25', accentSoft: '#F8E7D8', paper: '#FFF9F2', ink: '#261B14', muted: '#7E5E49',

@@ -30,7 +30,9 @@ judgment.
 Your `config.persona` answers four questions:
 
 1. **Who are they?** (`brand_cn`, `identity`, `location`, `years_experience`)
-2. **How do they sound?** (`voice` — keywords like "克制 / 实战 / 不卖鸡汤")
+2. **How do they sound?** (`voice` — keywords; in zh-mode, examples like
+   "克制 / 实战 / 不卖鸡汤" — restrained / practical / no chicken-soup
+   fluff. In en-mode, equivalent terse keywords)
 3. **What do they sign with?** (`signature` — usually same as `brand_cn`)
 4. **What identity DO they not claim?** (handled by `forbidden_brands_in_copy` —
    make sure your AI-tooling brand names go here so they never leak)
@@ -57,9 +59,9 @@ Any "no" → back to Stage 2.
 |-------------|--------------|--------------|
 | "今天我看了 X" / "I checked X today" | Exposes research stack; reads as content-farm process | Stated conclusion / inferred trend |
 | "AI is the future" filler | Generic; no decision change | Concrete decision the seller now makes differently |
-| "学会了点赞" / generic XHS CTA filler | Reads as fishing | Specific reason to act (CTA1–CTA6) |
+| "学会了点赞" ("learn to like-and-save") / generic XHS CTA filler | Reads as fishing | Specific reason to act (CTA1–CTA6) |
 | "creator-advice tone" (talking about XHS strategy itself) | Wrong audience signal | Operator memo about Amazon work |
-| Naming internal tooling | Brand boundary leak | Generic "AI agent" / "AI 帮你..." |
+| Naming internal tooling | Brand boundary leak | Generic "AI agent" / "AI 帮你..." ("AI helps you...") |
 
 ## When the validator and your judgment disagree
 
@@ -68,7 +70,7 @@ The validator is a contract, not a brain. Two cases come up:
 ### 1. Hard-fail you can't fix without breaking voice
 
 Almost never happens with the defaults. If it does (e.g. you genuinely think
-the title shouldn't contain `亚马逊` for one specific post), edit
+the title shouldn't contain `亚马逊` ("Amazon" in zh) for one specific post), edit
 `config.title_constraints.must_contain` for your account, not just for one
 post. Don't bypass the validator.
 
@@ -81,7 +83,7 @@ the decision change, write it into `post.json.qa_notes`:
 ```json
 {
   "qa_notes": [
-    "card 5 decision-verb soft-warn ignored — the 'change' here is the seller stops paying for noise data; framed as '不再' instead of one of the listed verbs",
+    "card 5 decision-verb soft-warn ignored — the 'change' here is the seller stops paying for noise data; framed as '不再' (not anymore) instead of one of the listed verbs",
     "T2 numeric pattern unsuitable for today's narrative; fell back to T1"
   ]
 }

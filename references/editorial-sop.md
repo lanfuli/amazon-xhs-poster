@@ -147,7 +147,8 @@ in America/Los_Angeles.
      - Analysts: Juozas Kaziukenas (`juozas` — note: not the same as
        his X handle `juokaz`)
    - `https://www.wearesellers.com/`
-     Chinese seller community (知无不言). Homepage shows titles +
+     Chinese seller community (知无不言, "say what you know without
+     reservation"). Homepage shows titles +
      metadata; full discussion bodies require login. The fetch-gated
      script handles this end-to-end (filters out paid bounty posts,
      extracts question + answer body via `.mod-body` class).
@@ -261,14 +262,18 @@ the room):
 5. **AI / tool** — workflow leverage (ai-workflow only: must end on a
    decision verb — see [`title-and-cta-patterns.md`](title-and-cta-patterns.md) §5)
 6. **CTA** — action / takeaway / signature; must contain at least one of
-   `点赞 / 收藏 / 关注 / 评论 / 不迷路`
+   `点赞 / 收藏 / 关注 / 评论 / 不迷路` (zh-mode tokens: like / save /
+   follow / comment / "don't get lost"). En-mode equivalents: `like /
+   save / follow / comment / share / subscribe`. Token list configurable
+   via `config.cta_tokens`.
 
 Optional 7-8: comparison, examples, objections, recap.
 
 **Psychology**: title + card 1 must use at least one of:
 - loss aversion
 - curiosity gap
-- identity mirroring (e.g. "如果你是亚马逊新卖家…")
+- identity mirroring (e.g. "如果你是亚马逊新卖家…" / "If you're a new
+  Amazon seller…")
 - insider advantage
 - credible urgency (real deadline / real cost)
 
@@ -277,8 +282,9 @@ generic inspiration. Voice = high-agency, slightly elite: calm, specific,
 decisive.
 
 **AI topics specifically**:
-- Frame the seller's AI workflow generically (e.g. "AI agent 自动…",
-  "用 AI 帮你算账"). Do NOT name your internal tooling.
+- Frame the seller's AI workflow generically (e.g. "AI agent 自动…" /
+  "AI agent automates…", "用 AI 帮你算账" / "use AI to handle the
+  numbers for you"). Do NOT name your internal tooling.
 - The persona is a human operator who uses AI, not an AI product.
 - Skip "AI is the future" filler. Show one concrete seller workflow that
   AI changes.
