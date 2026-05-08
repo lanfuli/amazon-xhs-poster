@@ -1,4 +1,4 @@
-# Gated sources — fetching X / LinkedIn / wearesellers via persistent Playwright profile
+# Gated sources — fetching X / LinkedIn / wearesellers / BDS / Walmart / YouTube via persistent Playwright profile
 
 The validator's [editorial-sop.md](editorial-sop.md) lists "Tier C" sources
 (LinkedIn watchlist, X / Twitter accounts) and notes they're **gated**:
@@ -155,11 +155,21 @@ bash scripts/launch-chrome-debug.sh
 
 This launches a **separate Chrome window** (parallel to your daily
 Chrome — which is untouched) with a profile dir at
-`~/.config/wayamzpost/chrome-debug-profile/`. First run is
-empty; you log in to X / LinkedIn / wearesellers manually in that
-window. Cookies persist in the profile dir, so future runs of the
-script don't relaunch Chrome (script is idempotent — sees Chrome
-already on debug port and exits early).
+`~/.config/wayamzpost/chrome-debug-profile/`. First run is empty.
+Log in (in that window) to whichever services you want fetched:
+
+- **X / Twitter** — login required
+- **LinkedIn** — login required
+- **wearesellers.com** — login required (paid bounty posts get filtered out)
+- **billiondollarsellers.com** — login + paid subscription required for
+  full body extraction (otherwise only headlines)
+- **YouTube** — anonymous works, but logging in surfaces your
+  subscriber-only video history if relevant
+- **Walmart corporate news** — fully public, no login
+
+Cookies persist in the profile dir, so future runs of the script don't
+relaunch Chrome (script is idempotent — sees Chrome already on debug
+port and exits early).
 
 Then verify Playwright can connect:
 

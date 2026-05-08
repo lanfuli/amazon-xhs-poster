@@ -1,4 +1,4 @@
-# Editorial SOP — Amazon Seller XHS Daily
+# Editorial SOP — wayamzpost (Amazon-Seller Daily, multi-platform)
 
 > Day-to-day editorial workflow. Adapted from a production SOP that has been
 > running daily since early 2026. The skill orchestrates this; you (or Claude)

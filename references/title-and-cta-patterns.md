@@ -9,7 +9,7 @@
 > `post.json.qa_notes`.
 >
 > Two language tracks are provided: **ZH** (default, optimized for
-> Xiaohongshu native audience) and **EN** (for Lemon8 / LinkedIn / X /
+> Xiaohongshu native audience) and **EN** (for LinkedIn / X /
 > Instagram). Pick one via `config.output_language` and align
 > `config.title_constraints.must_contain` accordingly.
 

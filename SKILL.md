@@ -1,15 +1,17 @@
 ---
 name: wayamzpost
-description: Generate one Amazon-seller post tailored to a specific platform — Xiaohongshu (default, 6-9 cards), Lemon8 (6-10 cards), LinkedIn (long-form text, ≤3000 chars, 3-5 hashtags), X / Twitter (single tweet ≤280 chars OR thread of up to 25), or Instagram (1-10 carousel + ≤2200 char caption). Each platform has its own char limits, hashtag rules, card count range, and post.md output layout. Supports Chinese (default) or English output via config.output_language. Trigger when the user says "写小红书 amazon post / 亚马逊小红书 / amazon seller post / linkedin amazon post / x amazon thread / instagram amazon carousel" or asks for a platform-specific seller-audience post. Generates artifacts only; does NOT auto-publish unless the user explicitly enables a publish adapter in their config.
-version: 1.7.0
+description: Generate one Amazon-seller post tailored to a specific platform — Xiaohongshu (default, 6-9 cards), LinkedIn (long-form text, ≤3000 chars, 3-5 hashtags), X / Twitter (single tweet ≤280 chars OR thread of up to 25), or Instagram (1-10 carousel + ≤2200 char caption). Each platform has its own char limits, hashtag rules, card count range, and post.md output layout. Supports Chinese (default) or English output via config.output_language. Trigger when the user says "写小红书 amazon post / 亚马逊小红书 / amazon seller post / linkedin amazon post / x amazon thread / instagram amazon carousel" or asks for a platform-specific seller-audience post. Generates artifacts only; does NOT auto-publish unless the user explicitly enables a publish adapter in their config.
+version: 1.8.0
 ---
 
 # wayamzpost
 
-Generate one Amazon-seller-themed Xiaohongshu (小红书) post per day:
-6–9 deterministic image cards rendered from HTML templates, plus a
-markdown file with title / body / hashtags / card list ready for manual
-upload to the Xiaohongshu app.
+Generate one Amazon-seller-audience post per day, tailored to a
+specific platform: Xiaohongshu (default — 6–9 deterministic image
+cards), LinkedIn (long-form text), X / Twitter (single tweet or
+thread), or Instagram (1–10 carousel + caption). Output is a
+publish-ready markdown file (`post.md`) plus rendered PNGs for
+carousel platforms — the user uploads manually.
 
 ## HARD RULES (read these first)
 
@@ -26,7 +28,7 @@ upload to the Xiaohongshu app.
    fallback.
    The validator refuses to run while it still says `REPLACE_ME`. Pick
    `output_language: "zh"` or `"en"` AND `platform: "xiaohongshu" |
-   "lemon8" | "linkedin" | "x" | "instagram"` here — they change the title
+   "linkedin" | "x" | "instagram"` here — they change the title
    keyword, CTA tokens, char limits, hashtag rules, card count range, and
    post.md output layout. See [references/platforms.md](references/platforms.md).
 3. **Voice supremacy.** When any pattern in the references would force a
@@ -216,7 +218,6 @@ content older than 90 days. Exits non-zero on any flag.
 - "linkedin amazon post" / "linkedin amazon thread"
 - "x amazon post" / "amazon twitter thread" / "amazon x thread"
 - "instagram amazon carousel" / "ig amazon post"
-- "lemon8 amazon post"
 - Any request to produce a platform-specific Amazon-seller-audience post
 
 ## Quick triggers (when NOT to invoke)
@@ -233,7 +234,6 @@ Set `config.platform` to one of:
 | Platform     | Format            | Title cap | Body cap | Hashtags  | Cards |
 |--------------|-------------------|-----------|----------|-----------|-------|
 | xiaohongshu  | image carousel    | 20 chars  | (soft)   | 5–10      | 6–9   |
-| lemon8       | image carousel    | 30 chars  | 2000     | 5–15      | 6–10  |
 | linkedin     | long-form text    | (none)    | 3000     | 3–5       | 0     |
 | x            | post or thread    | (none)    | 280/post | 0–2       | 0     |
 | instagram    | carousel + caption| (none)    | 2200     | 5–30      | 1–10  |

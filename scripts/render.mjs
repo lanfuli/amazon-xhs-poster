@@ -72,7 +72,23 @@ if (validator.status !== 0) {
   process.exit(validator.status || 1);
 }
 
-const root = JSON.parse(await fs.readFile(postJsonPath, 'utf8'));
+// Validate post.json existence + parseability before any other work.
+let rawPostJson;
+try {
+  rawPostJson = await fs.readFile(postJsonPath, 'utf8');
+} catch (err) {
+  console.error(`Cannot read ${postJsonPath}: ${err.message}`);
+  process.exit(1);
+}
+let root;
+try {
+  root = JSON.parse(rawPostJson);
+} catch (err) {
+  console.error(`post.json is malformed JSON: ${err.message}`);
+  console.error(`File: ${postJsonPath}`);
+  console.error('Common causes: trailing commas, unbalanced braces, unescaped quotes inside strings.');
+  process.exit(1);
+}
 const jobDir = expandHome(root.paths?.job_dir);
 const desktopRootRaw = root.paths?.desktop_root;
 const desktopRoot = desktopRootRaw ? expandHome(desktopRootRaw) : null;
@@ -479,55 +495,104 @@ if (cards.length === 0) {
 }
 
 // Render any non-empty card array. Platform-specific bounds (e.g. IG 1-10,
-// XHS 6-9, Lemon8 6-10) are enforced by validate.py before this point.
+// XHS 6-9) are enforced by validate.py before this point.
 if (cards.length > 10) {
   console.error(`Card count ${cards.length} exceeds the renderer's hard cap of 10. Trim post.json.cards.`);
   process.exit(1);
 }
 
-const outputs = [];
-for (const [index, card] of cards.entries()) {
-  const html = renderHtmlV4(card, theme, index, cards.length);
-  const htmlPath = path.join(cardsDir, `${card.id}.html`);
-  const pngPath = path.join(cardsDir, `${card.id}.png`);
-  await fs.writeFile(htmlPath, html, 'utf8');
-  const result = spawnSync(
-    'npx',
-    [
-      'playwright',
-      'screenshot',
-      '--browser', 'chromium',
-      '--viewport-size', '1080,1440',
-      '--wait-for-timeout', '350',
-      pathToFileURL(htmlPath).href,
-      pngPath
-    ],
-    { stdio: 'pipe', encoding: 'utf8' }
-  );
-
-  if (result.status !== 0) {
-    process.stderr.write(result.stdout || '');
-    process.stderr.write(result.stderr || '');
-    console.error(`Failed to render ${card.id}`);
-    process.exit(result.status || 1);
+// ─── Stale-PNG cleanup ──────────────────────────────────────────────
+// If a previous render run crashed mid-loop, cards/ contains stale
+// card_*.png from that earlier run. We sweep them BEFORE rendering so
+// a fresh run can't accidentally compose old + new cards together.
+// We only delete files that match our card naming pattern; user-
+// authored files in cards/ stay.
+{
+  const stale = await fs.readdir(cardsDir).catch(() => []);
+  for (const name of stale) {
+    if (/^card_\d+\.(png|jpg|html)$/.test(name)) {
+      await fs.unlink(path.join(cardsDir, name)).catch(() => {});
+    }
   }
-
-  const renderedBytes = await fs.readFile(pngPath);
-  const renderedKind = detectImageKind(renderedBytes);
-  let finalImagePath = pngPath;
-  if (renderedKind === 'jpeg') {
-    finalImagePath = path.join(cardsDir, `${card.id}.jpg`);
-    await fs.rename(pngPath, finalImagePath);
-  } else if (renderedKind !== 'png') {
-    console.error(`Rendered ${card.id} has unexpected image signature: ${renderedKind}`);
-    process.exit(1);
-  }
-
-  if (desktopCardsDir) {
-    await fs.copyFile(finalImagePath, path.join(desktopCardsDir, path.basename(finalImagePath)));
-  }
-  outputs.push({ id: card.id, html: htmlPath, png: finalImagePath });
+  await fs.unlink(path.join(cardsDir, 'render_manifest.json')).catch(() => {});
 }
+
+// In-progress flag — written before the loop, deleted on success. If
+// the next run sees this flag still present, it means the previous run
+// crashed (the cleanup above also runs, but the flag is a strong signal
+// for diagnostics).
+const inProgressFlag = path.join(cardsDir, '.render-in-progress');
+await fs.writeFile(inProgressFlag, new Date().toISOString(), 'utf8');
+
+const outputs = [];
+let renderError = null;
+try {
+  for (const [index, card] of cards.entries()) {
+    const html = renderHtmlV4(card, theme, index, cards.length);
+    const htmlPath = path.join(cardsDir, `${card.id}.html`);
+    const pngPath = path.join(cardsDir, `${card.id}.png`);
+    await fs.writeFile(htmlPath, html, 'utf8');
+    const result = spawnSync(
+      'npx',
+      [
+        'playwright',
+        'screenshot',
+        '--browser', 'chromium',
+        '--viewport-size', '1080,1440',
+        '--wait-for-timeout', '350',
+        pathToFileURL(htmlPath).href,
+        pngPath
+      ],
+      { stdio: 'pipe', encoding: 'utf8' }
+    );
+
+    if (result.status !== 0) {
+      process.stderr.write(result.stdout || '');
+      process.stderr.write(result.stderr || '');
+      // Surface the spawn-level error too (set when binary is missing).
+      if (result.error) {
+        process.stderr.write(`spawn error: ${result.error.message}\n`);
+      }
+      throw new Error(`Failed to render ${card.id} (exit status ${result.status})`);
+    }
+
+    const renderedBytes = await fs.readFile(pngPath);
+    const renderedKind = detectImageKind(renderedBytes);
+    let finalImagePath = pngPath;
+    if (renderedKind === 'jpeg') {
+      finalImagePath = path.join(cardsDir, `${card.id}.jpg`);
+      await fs.rename(pngPath, finalImagePath);
+    } else if (renderedKind !== 'png') {
+      throw new Error(`Rendered ${card.id} has unexpected image signature: ${renderedKind}`);
+    }
+
+    if (desktopCardsDir) {
+      await fs.copyFile(finalImagePath, path.join(desktopCardsDir, path.basename(finalImagePath)));
+    }
+    outputs.push({ id: card.id, html: htmlPath, png: finalImagePath });
+  }
+} catch (err) {
+  renderError = err;
+}
+
+if (renderError) {
+  // Cleanup partial-render artifacts so the next run can't compose them
+  // with newly-generated cards. We leave the .html files (useful for
+  // debugging the failure) but remove all PNGs to force a clean re-render.
+  console.error(`\nRender failed: ${renderError.message}`);
+  console.error('Cleaning up partial card outputs…');
+  const partials = await fs.readdir(cardsDir).catch(() => []);
+  for (const name of partials) {
+    if (/^card_\d+\.(png|jpg)$/.test(name)) {
+      await fs.unlink(path.join(cardsDir, name)).catch(() => {});
+    }
+  }
+  await fs.unlink(inProgressFlag).catch(() => {});
+  process.exit(1);
+}
+
+// Success — drop the in-progress flag.
+await fs.unlink(inProgressFlag).catch(() => {});
 
 const renderManifest = {
   platform: root.platform || 'xiaohongshu',

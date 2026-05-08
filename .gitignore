@@ -33,6 +33,13 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Browser profiles created by fetch-gated.mjs / launch-chrome-debug.sh.
+# These contain logged-in cookies for X / LinkedIn / wearesellers / BDS;
+# committing them to git would leak credentials.
+**/browser-profile/
+**/chrome-debug-profile/
+**/.render-in-progress
+
 # Rendered card outputs (in case the user puts a draft inside the repo)
 **/cards/card_*.png
 **/cards/card_*.jpg

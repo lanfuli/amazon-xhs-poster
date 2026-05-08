@@ -37,6 +37,11 @@ HASHTAG_RELEVANCE_MIN_RATIO = 0.6
 # card count range, whether the renderer paints PNG cards, and whether the
 # platform supports thread-mode multi-post output. Validator reads the
 # preset matching `config.platform` (default "xiaohongshu").
+# PLATFORM_PRESETS: per-platform validator constraints. New explicit knob:
+#   requires_inbody_hashtags — whether xhs.append_hashtags_to_content must
+#   be true. Was previously inferred from format=="carousel"; making it
+#   explicit prevents future format-string renames from silently flipping
+#   the check.
 PLATFORM_PRESETS = {
     "xiaohongshu": {
         "title_max": 20,
@@ -49,22 +54,9 @@ PLATFORM_PRESETS = {
         "card_max": 9,
         "renders_cards": True,
         "supports_thread": False,
+        "requires_inbody_hashtags": True,
         "format": "carousel",
         "description": "Xiaohongshu native (default for ZH). 20-char title cap, 6-9 image cards, 5-10 hashtags ≤12 chars each.",
-    },
-    "lemon8": {
-        "title_max": 30,
-        "title_required": True,
-        "body_max": 2000,
-        "hashtag_min": 5,
-        "hashtag_max": 15,
-        "hashtag_token_max": 30,
-        "card_min": 6,
-        "card_max": 10,
-        "renders_cards": True,
-        "supports_thread": False,
-        "format": "carousel",
-        "description": "Lemon8 (TikTok's XHS-equivalent). Roomier title and hashtags than XHS, similar carousel format.",
     },
     "linkedin": {
         "title_max": 0,
@@ -77,6 +69,7 @@ PLATFORM_PRESETS = {
         "card_max": 0,
         "renders_cards": False,
         "supports_thread": False,
+        "requires_inbody_hashtags": False,
         "format": "long-form-text",
         "description": "LinkedIn long-form text post. No carousel by default. 3000-char body, 3-5 hashtags, no separate title (first line acts as hook).",
     },
@@ -92,6 +85,7 @@ PLATFORM_PRESETS = {
         "renders_cards": False,
         "supports_thread": True,
         "thread_max_posts": 25,
+        "requires_inbody_hashtags": False,
         "format": "post-or-thread",
         "description": "X (Twitter) — single 280-char post or a thread of up to 25 posts via xhs.thread[]. Hashtags discouraged (0-2).",
     },
@@ -106,6 +100,7 @@ PLATFORM_PRESETS = {
         "card_max": 10,
         "renders_cards": True,
         "supports_thread": False,
+        "requires_inbody_hashtags": True,
         "format": "carousel-with-caption",
         "description": "Instagram carousel (1-10 cards) + caption (≤2200 chars). 5-30 hashtags allowed, but 5-10 is optimal for reach.",
     },
@@ -186,10 +181,16 @@ def normalized_tags(post: dict) -> list[str]:
     xhs_tags = (post.get("xhs") or {}).get("tags") or []
     seo_tags = (post.get("seo") or {}).get("hashtags") or []
     chosen = xhs_tags if xhs_tags else seo_tags
+    if not isinstance(chosen, list):
+        return []
     out: list[str] = []
     seen: set[str] = set()
     for raw in chosen:
-        tag = str(raw).lstrip("#").strip().replace(" ", "")
+        # Skip non-string entries (None, dicts, lists, ints) — caller will
+        # have separately checked the input shape and emitted an error.
+        if not isinstance(raw, str):
+            continue
+        tag = raw.lstrip("#").strip().replace(" ", "")
         if not tag or tag in seen:
             continue
         seen.add(tag)
@@ -301,8 +302,8 @@ def load_last_n_days_card6(post_path: Path, days: int) -> list[tuple[str, str]]:
 def tokenize_for_relevance(s: str) -> set[str]:
     s = (s or "")
     # Split CamelCase / PascalCase boundaries so "AmazonSeller" → "amazon seller".
-    # This makes English hashtag matching robust against the common XHS / Lemon8
-    # convention of camel-cased tag spellings.
+    # This makes English hashtag matching robust against the common
+    # camel-cased tag spellings used on XHS / IG.
     s_split = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", s)
     s_split = re.sub(r"(?<=[A-Z])(?=[A-Z][a-z])", " ", s_split)
     s_lower = s_split.lower()
@@ -316,6 +317,9 @@ def tokenize_for_relevance(s: str) -> set[str]:
 
 
 def hashtag_relevance_ratio(tags: list[str], post: dict) -> float:
+    # Defensive: caller already guards `len(tags) >= hashtag_min` before
+    # calling, so empty tags is unreachable in normal flow. Kept for
+    # robustness if the function is reused elsewhere.
     if not tags:
         return 1.0
     topic = post.get("topic") or {}
@@ -459,10 +463,24 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             "and set your account brand string before validating"
         )
 
-    # Title length cap: prefer explicit config override; else use platform preset.
+    # Title length cap. Three states:
+    #   - max_chars: null  → use platform preset
+    #   - max_chars: 0     → no cap (special-case for "ignore platform preset")
+    #   - max_chars: N>0   → enforce N as the cap
+    # Note this differs from cta_tokens / decision_verbs (where null = use
+    # language default and [] = disable). The title knob's null-vs-0 distinction
+    # is intentional — many users want to keep the platform default but not
+    # special-case empty arrays here.
     title_max_cfg = title_cfg.get("max_chars")
     if title_max_cfg is not None:
-        title_max = int(title_max_cfg)
+        try:
+            title_max = int(title_max_cfg)
+        except (TypeError, ValueError):
+            errors.append(
+                f"config.title_constraints.max_chars must be an integer or null, "
+                f"got {title_max_cfg!r} ({type(title_max_cfg).__name__})"
+            )
+            title_max = int(preset["title_max"]) if preset["title_max"] else 0
     else:
         title_max = int(preset["title_max"]) if preset["title_max"] else 0
     raw_must_contain = title_cfg.get("must_contain")
@@ -490,6 +508,25 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
     title = str(xhs.get("title") or "").strip()
     content = str(xhs.get("content") or "").strip()
     thread = xhs.get("thread") or []
+
+    # Validate raw tag input shape before normalizing. We surface a clean
+    # error for None / int / dict entries instead of letting them fall
+    # through to .lower() and crash with AttributeError.
+    raw_tag_sources = [
+        ("xhs.tags", (xhs.get("tags") if isinstance(xhs.get("tags"), list) else None)),
+        ("seo.hashtags", ((post.get("seo") or {}).get("hashtags") if isinstance((post.get("seo") or {}).get("hashtags"), list) else None)),
+    ]
+    for src_name, raw_list in raw_tag_sources:
+        if raw_list is None:
+            continue
+        bad = [(i, v) for i, v in enumerate(raw_list) if not isinstance(v, str)]
+        if bad:
+            errors.append(
+                f"{src_name} contains non-string entries at index "
+                f"{[i for i, _ in bad]} (values: {[type(v).__name__ for _, v in bad]}) "
+                f"— hashtags must all be strings"
+            )
+
     tags = normalized_tags(post)
 
     # Title checks — only enforced when the platform has a title concept.
@@ -610,10 +647,13 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
                 f"{platform!r} expects {card_max}"
             )
 
-    # Hashtag-block-in-body requirement applies to platforms where in-body
-    # hashtags drive search reach (XHS, Lemon8, IG). Text-only platforms
-    # (LinkedIn, X) typically put hashtags inline, not in a trailing block.
-    requires_inbody_hashtags = preset["renders_cards"] or preset["format"] == "carousel"
+    # Hashtag-block-in-body requirement is platform-driven. Read explicitly
+    # from PLATFORM_PRESETS; fall back to the legacy inference for forward-
+    # compatibility with older preset blobs that lack the explicit key.
+    requires_inbody_hashtags = preset.get(
+        "requires_inbody_hashtags",
+        preset["renders_cards"] or preset["format"] == "carousel",
+    )
     if requires_inbody_hashtags and xhs.get("append_hashtags_to_content", True) is not True:
         errors.append("xhs.append_hashtags_to_content must be true for this platform")
 
@@ -634,9 +674,9 @@ def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict,
             f"hashtags exceeding {hashtag_token_max} chars for {platform!r}: {overlong}"
         )
     # Hashtag-level must_contain check (case-insensitive). Useful for platforms
-    # where hashtag-driven discovery matters (XHS, Lemon8, IG). For text-only
-    # platforms with low hashtag count this is a weaker signal but still
-    # checked when tags are present.
+    # where hashtag-driven discovery matters (XHS, IG). For text-only platforms
+    # with low hashtag count this is a weaker signal but still checked when
+    # tags are present.
     if tags and must_contain_lower and not any(
         any(kw in t.lower() for kw in must_contain_lower) for t in tags
     ):

@@ -9,7 +9,6 @@ import pytest
     "platform,expected_card_min,expected_card_max,renders_cards",
     [
         ("xiaohongshu", 6, 9, True),
-        ("lemon8", 6, 10, True),
         ("instagram", 1, 10, True),
         ("linkedin", 0, 0, False),
         ("x", 0, 0, False),

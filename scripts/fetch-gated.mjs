@@ -203,13 +203,6 @@ function randomDelay() {
   return Math.floor(Math.random() * (max - min) * 1000) + min * 1000;
 }
 
-function within24h(timestampStr) {
-  const t = new Date(timestampStr).getTime();
-  if (isNaN(t)) return true; // be permissive
-  const ageHours = (Date.now() - t) / (1000 * 60 * 60);
-  return ageHours <= lookbackHours;
-}
-
 // ----- launch / connect browser -----
 //
 // Two modes:
@@ -331,6 +324,12 @@ async function fetchX() {
   const lines = [`## X / Twitter — last ${lookbackHours}h`, ''];
   const page = await ctx.newPage();
 
+  // Circuit breaker: if 2 consecutive handles fail (likely session
+  // expiry or platform-wide block), skip the rest instead of burning
+  // 30s × N handles on inevitable timeouts.
+  let consecutiveFailures = 0;
+  const FAILURE_THRESHOLD = 2;
+
   for (const item of xCfg.handles) {
     const handle = typeof item === 'string' ? item : item.handle;
     const tier = typeof item === 'object' ? (item.tier || 'general') : 'general';
@@ -339,6 +338,13 @@ async function fetchX() {
     const url = `https://x.com/${handle}`;
     if (DRY_RUN) {
       lines.push(`### @${handle} (${tier}) — DRY RUN, would fetch ${url}`);
+      lines.push('');
+      continue;
+    }
+
+    if (consecutiveFailures >= FAILURE_THRESHOLD) {
+      lines.push(`### @${handle} (${tier})`);
+      lines.push(`_(skipped — circuit breaker tripped after ${FAILURE_THRESHOLD} consecutive failures; likely session expired)_`);
       lines.push('');
       continue;
     }
@@ -378,6 +384,7 @@ async function fetchX() {
       if (!recent.length) {
         lines.push(`_(no tweets visible — check handle exists at https://x.com/${handle})_`);
         lines.push('');
+        consecutiveFailures += 1;
       } else {
         for (const t of recent) {
           const tsHuman = t.ts ? new Date(t.ts).toISOString().slice(0, 16).replace('T', ' ') : '?';
@@ -386,11 +393,13 @@ async function fetchX() {
           if (t.url) lines.push(`  ${t.url}`);
         }
         lines.push('');
+        consecutiveFailures = 0;  // reset on any success
       }
     } catch (err) {
       lines.push(`### @${handle} (${tier})`);
       lines.push(`_⚠ fetch failed: ${err.message?.slice(0, 200)}_`);
       lines.push('');
+      consecutiveFailures += 1;
     }
 
     await sleep(randomDelay());

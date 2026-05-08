@@ -114,7 +114,25 @@ def main():
     drafts_root = expand(paths_cfg.get("drafts_root"))
     if not drafts_root:
         sys.exit("config.paths.drafts_root is empty — set it in your config.json")
-    drafts_root.mkdir(parents=True, exist_ok=True)
+    try:
+        drafts_root.mkdir(parents=True, exist_ok=True)
+    except OSError as err:
+        sys.exit(
+            f"config.paths.drafts_root ({drafts_root}) cannot be created: {err}\n"
+            "Check the path exists in a writable location and that any "
+            "parent symlinks resolve to a real directory."
+        )
+    # Probe writability — mkdir succeeds silently for symlinks-to-nowhere
+    # and read-only volumes; downstream writes then fail cryptically.
+    probe = drafts_root / ".wayamzpost-write-probe"
+    try:
+        probe.write_text("ok")
+        probe.unlink()
+    except OSError as err:
+        sys.exit(
+            f"config.paths.drafts_root ({drafts_root}) is not writable: {err}\n"
+            "If this path is a symlink, verify its target exists and is writable."
+        )
 
     job_dir = drafts_root / date
     research_dir = job_dir / "research"
@@ -139,7 +157,6 @@ def main():
     platform = (config.get("platform") or "xiaohongshu").strip().lower()
     PLATFORM_DEFAULTS = {
         "xiaohongshu": {"title_max": 20, "card_min": 6, "card_max": 9, "renders_cards": True},
-        "lemon8":      {"title_max": 30, "card_min": 6, "card_max": 10, "renders_cards": True},
         "linkedin":    {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
         "x":           {"title_max": 0,  "card_min": 0, "card_max": 0,  "renders_cards": False},
         "instagram":   {"title_max": 0,  "card_min": 1, "card_max": 10, "renders_cards": True},
@@ -152,6 +169,18 @@ def main():
         "zh": "3秒内停留并产生关注/收藏意图",
         "en": "Stop the scroll in 3 seconds, earn a follow or save",
     }[language]
+
+    # Persona sanity check — if both signature and brand_cn are empty,
+    # every rendered card would have a blank footer, with no warning.
+    # We surface the issue here so the user fixes their config now.
+    sig_raw = (persona_cfg.get("signature") or "").strip()
+    brand_raw = (persona_cfg.get("brand_cn") or "").strip()
+    if not sig_raw and not brand_raw:
+        sys.exit(
+            "config.persona.brand_cn and config.persona.signature are BOTH empty. "
+            "Set at least one (typically brand_cn — signature defaults to it). "
+            "Without a signature, every rendered card footer will be blank."
+        )
 
     post_json_path = job_dir / "post.json"
     if not post_json_path.exists():
@@ -166,7 +195,11 @@ def main():
                 "location": persona_cfg.get("location", ""),
                 "years_experience": persona_cfg.get("years_experience", 0),
                 "voice": persona_cfg.get("voice", ""),
-                "signature": persona_cfg.get("signature") or persona_cfg.get("brand_cn", ""),
+                "signature": (
+                    persona_cfg.get("signature")
+                    or persona_cfg.get("brand_cn")
+                    or ""
+                ),
             },
             "topic": {
                 "category": "",

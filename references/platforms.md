@@ -17,7 +17,6 @@ works:
 |              | zh (Chinese)              | en (English)              |
 |--------------|---------------------------|---------------------------|
 | xiaohongshu  | ✓ default                 | ✓ EN-on-XHS (rare but works) |
-| lemon8       | ✓ ZH on Lemon8            | ✓ EN-Lemon8 (default for EN carousel) |
 | linkedin     | ✓ Chinese B2B / cross-border | ✓ Western B2B            |
 | x            | ✓ Chinese tweets (CJK weight × 2) | ✓ standard                |
 | instagram    | ✓ Chinese caption         | ✓ standard                |
@@ -31,15 +30,14 @@ when emitting `post.md`.
 | Platform     | Title cap | Body cap | Hashtags  | Cards   | Format             |
 |--------------|-----------|----------|-----------|---------|--------------------|
 | xiaohongshu  | 20 chars  | (soft)   | 5–10 (≤12) | 6–9     | image carousel     |
-| lemon8       | 30 chars  | 2000     | 5–15 (≤30) | 6–10    | image carousel     |
 | linkedin     | (none)    | 3000     | 3–5 (≤50)  | 0       | long-form text     |
 | x            | (none)    | 280/post | 0–2 (≤30)  | 0       | post or thread     |
 | instagram    | (none)    | 2200     | 5–30 (≤30) | 1–10    | carousel + caption |
 
 The renderer paints PNGs only for platforms where `renders_cards = true`
-(xiaohongshu / lemon8 / instagram). Text-only platforms (linkedin / x)
-get an empty `render_manifest.json` and `make-post-md.py` produces a
-text-shaped `post.md`.
+(xiaohongshu / instagram). Text-only platforms (linkedin / x) get an
+empty `render_manifest.json` and `make-post-md.py` produces a text-shaped
+`post.md`.
 
 ---
 
@@ -56,21 +54,6 @@ title, image-first carousel, hashtag block in body for search reach.
 - Hashtags: 5–10, each ≤ 12 chars, ≥ 60% must share token with topic
 - Cards: 6 default, 7–9 when topic warrants
 - Output: `post.md` lists card filenames; user uploads PNGs via XHS app
-
----
-
-## lemon8
-
-TikTok's Xiaohongshu-equivalent for English-speaking markets. Same
-visual carousel format but more permissive:
-
-- Title: ≤ 30 chars (Lemon8 surfaces longer titles than XHS)
-- Body: ≤ 2000 chars
-- Hashtags: 5–15, each ≤ 30 chars (ASCII allowed)
-- Cards: 6–10
-- Output: same carousel structure as XHS; user uploads PNGs to Lemon8 app
-
-Pair with `output_language: "en"`.
 
 ---
 
@@ -131,7 +114,7 @@ weight: `xhs.thread[2] exceeds 280 characters: 312 (CJK weighting: 175 chars →
 in en-mode: `**Tweet 1/6** (...)`) — so when you paste each tweet into
 X manually you can verify it's still under 280 weight.
 
-Other platforms (LinkedIn / Lemon8 / Instagram) use raw character count;
+Other platforms (LinkedIn / Instagram) use raw character count;
 only X applies CJK weighting.
 
 **Editorial note**: thread mode works best for sequential reasoning (1
@@ -222,7 +205,7 @@ The skill ships canonical examples for every language-platform pair:
 | File                                       | Language | Platform     |
 |--------------------------------------------|----------|--------------|
 | `examples/post.example.json`               | zh       | xiaohongshu  |
-| `examples/post-en.example.json`            | en       | xiaohongshu (works for lemon8 too) |
+| `examples/post-en.example.json`            | en       | xiaohongshu  |
 | `examples/post-linkedin.example.json`      | en       | linkedin     |
 | `examples/post-linkedin-zh.example.json`   | zh       | linkedin     |
 | `examples/post-x.example.json`             | en       | x            |

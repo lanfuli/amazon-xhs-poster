@@ -12,16 +12,17 @@
   },
 
   "output_language": "zh",
-  "_output_language_help": "zh = Chinese output (default, optimized for Xiaohongshu native audience). en = English output (for Lemon8 / LinkedIn / X / Instagram). Switching to 'en' auto-defaults must_contain, cta_tokens, and decision_verbs to English equivalents — but you can still override any of those explicitly below.",
+  "_output_language_help": "zh = Chinese output (default, optimized for Xiaohongshu native audience). en = English output (for LinkedIn / X / Instagram). Switching to 'en' auto-defaults must_contain, cta_tokens, and decision_verbs to English equivalents — but you can still override any of those explicitly below.",
 
   "platform": "xiaohongshu",
-  "_platform_help": "Target platform — drives title length cap, body cap, hashtag count rules, card count range, and post.md output layout. Choices: 'xiaohongshu' (default; ZH carousel, 6-9 cards, ≤20 char title), 'lemon8' (EN carousel, 6-10 cards, ≤30 char title), 'linkedin' (text-only, 3000-char body, 3-5 hashtags), 'x' (single tweet OR thread via xhs.thread[], 280 char/post, 0-2 hashtags), 'instagram' (1-10 cards + caption, up to 2200 char caption, 5-30 hashtags). See references/platforms.md.",
+  "_platform_help": "Target platform — drives title length cap, body cap, hashtag count rules, card count range, and post.md output layout. Choices: 'xiaohongshu' (default; ZH carousel, 6-9 cards, ≤20 char title), 'linkedin' (text-only, 3000-char body, 3-5 hashtags), 'x' (single tweet OR thread via xhs.thread[], 280 char/post, 0-2 hashtags), 'instagram' (1-10 cards + caption, up to 2200 char caption, 5-30 hashtags). See references/platforms.md.",
 
 
   "title_constraints": {
     "max_chars": 20,
     "must_contain": ["亚马逊"]
   },
+  "_title_help": "max_chars=20 matches Xiaohongshu's soft title cap. Set to null to let the validator use each platform's preset (XHS 20, LinkedIn/X/Instagram no separate title cap). Set an explicit number to enforce a stricter account-level cap. The validator will hard-fail titles longer than this.",
 
   "_cta_tokens_help": "Optional override. The skill will pick a sensible default for your output_language; specify here only if you need a different vocabulary. ZH default: ['点赞', '收藏', '关注', '不迷路', '评论']. EN default: ['like', 'save', 'follow', 'comment', 'share', 'subscribe'].",
   "cta_tokens": null,
@@ -49,6 +50,7 @@
     "ppc land"
   ],
 
+  "_angle_quotas_help": "Each post is tagged with one category. The validator runs a 14-day rolling check: if the recent 14 days already contain `ceiling` posts in this category, you get a soft-warn (publish anyway, but consider rotating). `floor` is the recommended minimum to keep the rotation balanced — it's informational, not enforced. `color` drives the card's accent palette in render.mjs. Tweak to match your account's actual content mix; categories you don't post should have floor=0.",
   "angle_quotas": {
     "amazon-news":           { "floor": 2, "ceiling": 5, "color": "amber"  },
     "white-hat-tactic":      { "floor": 2, "ceiling": 5, "color": "green"  },
@@ -105,6 +107,7 @@
       ]
     },
 
+    "_wearesellers_help": "Chinese-language seller community (知无不言). Default enabled in this zh-default config because zh-mode operators typically want this signal. EN-default config (config-en.example.json) ships with this disabled by default since the fetched content is in Chinese and may not be useful to EN-only operators. Top non-paid hot threads are extracted per run.",
     "wearesellers": {
       "enabled": true,
       "top_n": 5

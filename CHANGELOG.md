@@ -4,6 +4,103 @@ All notable changes to this project are documented here. Format inspired
 by [Keep a Changelog](https://keepachangelog.com/); the project follows
 [Semantic Versioning](https://semver.org/) where reasonable.
 
+## [v1.8.0] — 2026-05-08
+
+Comprehensive 52-finding QA audit landed; this release fixes all of it
+plus drops Lemon8 support to focus on the 4 actively-used platforms.
+
+### Removed (breaking)
+
+- **Lemon8 platform support fully removed.** Was advertised but unused
+  and shipped 0 example files. Removed from `PLATFORM_PRESETS`,
+  `PLATFORM_DEFAULTS`, `PLATFORM_FORMAT`, `HEADERS_BY_LANG`, all docs,
+  trigger phrases, and the parametrized tests. Validator and renderer
+  no longer recognize `platform: "lemon8"`. **If you were using Lemon8,
+  pin to v1.7.0**: `git checkout v1.7.0` or wait for a v1.8.x patch
+  if there's demand.
+
+### Added
+
+- **`config-en.example.json` `platform` default flipped to `linkedin`**
+  — XHS-as-default for an EN-mode template was confusing.
+- **`requires_inbody_hashtags` explicit key** in `PLATFORM_PRESETS`
+  (was inferred from `format == "carousel"`; now explicit so a future
+  format-string rename can't silently flip the check).
+- **`scripts/render.mjs` partial-render cleanup**: stale PNGs from a
+  crashed previous run are wiped before each new render. An
+  `.render-in-progress` flag is written before the loop and deleted on
+  success, so failed runs are diagnosable.
+- **`scripts/launch-chrome-debug.sh` cross-platform support**: now
+  auto-detects macOS / Linux / WSL2 / Windows-Git-Bash and resolves
+  the right Chrome binary instead of hard-failing on non-Darwin.
+- **3 new bilingual edge-case tests** in `test_validate.py`
+  (max_chars-as-string regression, null-hashtag regression, ZH post
+  with EN must_contain).
+- **`CONTRIBUTING.md`** with local-setup / tests / code-style /
+  platform-extension / gated-source-extension guides.
+- **`_angle_quotas_help`** + **`_title_help`** + **`_wearesellers_help`**
+  added to both config templates (mirrored).
+- **README "Production audits" subsection** separates `audit-sources.mjs`
+  from the test suite.
+- **README "Formerly amazon-xhs-poster" SEO breadcrumb** for users
+  searching for the old name.
+
+### Fixed
+
+- **`scripts/validate.py`** no longer crashes on:
+  - Non-numeric `title_constraints.max_chars` (e.g. `"twenty"`) — emits
+    a clean error
+  - Null / int entries in `seo.hashtags` or `xhs.tags` — emits a clean
+    "non-string entry" error instead of `AttributeError`
+- **`scripts/render.mjs`** wraps `JSON.parse(post.json)` in try/catch;
+  surfaces the spawn-level `result.error` (e.g. missing Playwright)
+  instead of swallowing it.
+- **`scripts/init-day.py`** now writes a write-probe file to validate
+  `drafts_root` is actually writable (catches symlinks-to-nowhere /
+  read-only volumes); hard-fails when both `persona.brand_cn` and
+  `persona.signature` are empty (silent-empty-footer bug).
+- **`scripts/history.py`** type-guards malformed `seo.hashtags` /
+  `topic.sources`; date-fallback now sorts by `job_date` lexically
+  instead of trusting input order.
+- **`scripts/audit-sources.mjs`** now distinguishes `fetch`-phase vs
+  `parse`-phase errors via `errorPhase` field; reprobe surfaces both
+  redirect targets when the source CDN-flaps between them.
+- **`scripts/make-post-md.py`** emits a clear warning to stderr when
+  `render_manifest.json` AND all card PNG/JPG files are missing
+  (previously generated empty post.md silently).
+- **`scripts/fetch-gated.mjs`** X fetcher gained a circuit breaker
+  (skips remaining handles after 2 consecutive failures — likely
+  session expiry — saves 30s × N of pointless timeouts).
+- **`scripts/launch-chrome-debug.sh`** port regex tightened: leading
+  zeros now rejected (`0077` no longer interpreted as octal 63).
+- **`.gitignore`** now covers `**/browser-profile/`,
+  `**/chrome-debug-profile/`, and `.render-in-progress` flag.
+- **Dead code removed**: `fetch-gated.mjs within24h()` was defined but
+  never called.
+- **`CHANGELOG.md` footnote URLs** all migrated from `lanfuli/amazon-xhs-poster`
+  → `lanfuli/wayamzpost` (already done in v1.7.0; verified).
+
+### Doc drift cleanup
+
+- `references/editorial-sop.md` header renamed from "Amazon Seller XHS
+  Daily" → "wayamzpost (Amazon-Seller Daily, multi-platform)".
+- `references/gated-sources.md` header now lists all 6 fetcher sources
+  in the title.
+- `references/gated-sources.md` setup instructions now distinguish
+  per-source login requirements (X/LinkedIn/wearesellers/BDS need login;
+  YouTube optional; Walmart fully public).
+- `SKILL.md` intro paragraph rewritten from XHS-only framing to
+  multi-platform.
+- `README.md` config-resolution fallback chain now shows explicit 5-step
+  priority order in troubleshooting.
+- `references/customization.md` legacy path properly tagged `(legacy)`.
+
+### Known coverage gaps (deferred to a future release)
+
+- `tests/node/` still only 6 tests for ~3,800 lines of node code.
+  Audit recommendation: add HTML-snapshot test per platform.
+- No JSON schema file shipped (would enable IDE-level inline validation).
+
 ## [v1.7.0] — 2026-05-07
 
 ### Added
@@ -380,7 +477,8 @@ Initial public release. Single platform (Xiaohongshu), Chinese-first.
 - Generate-only by default; opt-in `publish_adapter` hook for those
   who genuinely want to automate publishing.
 
-[v1.7.0]: https://github.com/lanfuli/wayamzpost/compare/v1.6.0...main
+[v1.8.0]: https://github.com/lanfuli/wayamzpost/compare/v1.7.0...main
+[v1.7.0]: https://github.com/lanfuli/wayamzpost/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/lanfuli/wayamzpost/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/lanfuli/wayamzpost/compare/v1.4.2...v1.5.0
 [v1.4.2]: https://github.com/lanfuli/wayamzpost/compare/v1.4.1...v1.4.2

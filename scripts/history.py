@@ -108,8 +108,11 @@ def load_post(path: Path):
     angle = (((data.get("topic") or {}).get("angle")) or "").strip()
     category = (((data.get("topic") or {}).get("category")) or "").strip()
     why_now = (((data.get("topic") or {}).get("why_now")) or "").strip()
-    tags = ((data.get("seo") or {}).get("hashtags")) or []
-    sources = ((data.get("topic") or {}).get("sources")) or []
+    raw_tags = ((data.get("seo") or {}).get("hashtags")) or []
+    raw_sources = ((data.get("topic") or {}).get("sources")) or []
+    # Defensive against malformed post.json (dict / int instead of list).
+    tags = raw_tags if isinstance(raw_tags, list) else []
+    sources = raw_sources if isinstance(raw_sources, list) else []
     if not title and not angle:
         return None
     publish_result = path.parent / "publish" / "publish_result.json"
@@ -281,7 +284,12 @@ def main():
             if row.get("date_sort") and datetime.fromisoformat(row["date_sort"]) >= cutoff
         ]
     else:
-        recent = rows[-days:]
+        # Fallback: no row has a parseable date. Sort by job_date string
+        # (YYYY-MM-DD lexical order is chronological) before slicing the
+        # tail. Plain `rows[-days:]` was unsafe — it relied on whatever
+        # order the directory walk yielded.
+        rows_by_jd = sorted(rows, key=lambda x: (x.get("job_date") or ""))
+        recent = rows_by_jd[-days:]
     payload = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "window_days": days,

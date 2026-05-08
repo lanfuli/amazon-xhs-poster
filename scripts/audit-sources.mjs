@@ -108,14 +108,24 @@ async function probe(source) {
   let error = null;
   let finalUrl = source.url;
 
+  // Tag errors by phase so the report can distinguish "DNS / network /
+  // server didn't respond" from "got a response but body extraction blew
+  // up" (e.g. OOM on a giant response).
+  let errorPhase = null;
+  let resp = null;
   try {
-    const resp = await fetch(source.url, {
+    resp = await fetch(source.url, {
       headers: { 'User-Agent': UA, Accept: '*/*' },
       redirect: 'follow',
     });
     status = resp.status;
     finalUrl = resp.url;
-    if (resp.ok) {
+  } catch (e) {
+    errorPhase = 'fetch';
+    error = e.message;
+  }
+  if (resp && resp.ok) {
+    try {
       const text = await resp.text();
       contentLength = text.length;
       if (source.dateRegex) {
@@ -130,9 +140,10 @@ async function probe(source) {
           mostRecentDate = dates[dates.length - 1];
         }
       }
+    } catch (e) {
+      errorPhase = 'parse';
+      error = e.message;
     }
-  } catch (e) {
-    error = e.message;
   }
 
   const elapsedMs = Date.now() - start;
@@ -142,7 +153,7 @@ async function probe(source) {
     staleHint = ageDays > STALE_DAYS ? `STALE (${ageDays}d since ${mostRecentDate})` : `fresh (${ageDays}d since ${mostRecentDate})`;
   }
   const redirected = finalUrl !== source.url;
-  return { ...source, status, contentLength, mostRecentDate, staleHint, error, elapsedMs, finalUrl, redirected };
+  return { ...source, status, contentLength, mostRecentDate, staleHint, error, errorPhase, elapsedMs, finalUrl, redirected };
 }
 
 // Categorize a redirect as benign (trailing-slash, http→https, same-domain
@@ -174,7 +185,20 @@ async function reprobeIfRedirected(result) {
   await new Promise(r => setTimeout(r, 500));
   const second = await probe({ url: result.url, tier: result.tier, label: result.label, dateRegex: result.dateRegex });
   if (!second.redirected) {
+    // First probe redirected, second didn't — transient CDN flip. Trust
+    // the second result.
     return { ...second, _firstProbeRedirected: true, _note: 'transient redirect on first probe; second probe was clean' };
+  }
+  // Both probes redirected. If to the same URL → real rename. If to
+  // DIFFERENT URLs → the source is CDN-flapping between targets; surface
+  // both so the editor can investigate (previously the function silently
+  // returned only the first target).
+  if (second.finalUrl !== result.finalUrl) {
+    return {
+      ...result,
+      _flappingTargets: [result.finalUrl, second.finalUrl],
+      _note: `redirect target flaps: ${result.finalUrl} vs ${second.finalUrl}`,
+    };
   }
   return result;
 }

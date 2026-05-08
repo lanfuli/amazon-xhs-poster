@@ -2,12 +2,17 @@
 
 [![CI](https://github.com/lanfuli/wayamzpost/actions/workflows/ci.yml/badge.svg)](https://github.com/lanfuli/wayamzpost/actions/workflows/ci.yml)
 
+> Formerly `amazon-xhs-poster`. Renamed in v1.7.0 since the skill now
+> serves 4 platforms, not just Xiaohongshu. Old GitHub URL redirects;
+> legacy `XHS_AMAZON_CONFIG` env var + `~/.config/amazon-xhs-poster/`
+> path are still honored as fallbacks for existing installs.
+
 A Claude Code skill that runs a daily Amazon-seller content engine: it
 collects research signal from 11+ verified sources (X, LinkedIn,
 wearesellers, BDS, Walmart, YouTube, plus dated public feeds), turns
 your topic-of-the-day into 6–9 image cards + a publish-ready markdown
-post, and supports five target platforms (Xiaohongshu / Lemon8 /
-LinkedIn / X / Instagram) in Chinese or English.
+post, and supports four target platforms (Xiaohongshu / LinkedIn / X /
+Instagram) in Chinese or English.
 
 > **Skill identifier:** `wayamzpost` (the directory name and
 > `SKILL.md` `name:` field — that's what Claude Code's trigger system
@@ -62,7 +67,7 @@ mkdir -p ~/.config/wayamzpost
 #    Option A: zh-default (Xiaohongshu native audience):
 cp config.example.json ~/.config/wayamzpost/config.json
 
-#    Option B: en-default (LinkedIn / X / Instagram / Lemon8 / EN-Xiaohongshu):
+#    Option B: en-default (LinkedIn / X / Instagram / EN-Xiaohongshu):
 cp config-en.example.json ~/.config/wayamzpost/config.json
 
 $EDITOR ~/.config/wayamzpost/config.json
@@ -82,10 +87,12 @@ In the config, at minimum:
 - Set `persona.brand_cn` (your account brand / display string)
 - Set `persona.identity` and `persona.signature`
 - Pick a real path for `paths.drafts_root`
-- Pick `output_language`: `"zh"` (default — Chinese) or `"en"` (English)
+- Pick `output_language`: `"zh"` (Chinese, default for the zh-config
+  template) or `"en"` (English, default for the en-config template).
+  The two configs are independent templates with the same schema; pick
+  whichever matches your primary audience.
 - Pick `platform`. Choices:
   - `"xiaohongshu"` (default) — 6–9 image cards, ≤20 char title
-  - `"lemon8"` — 6–10 image cards, ≤30 char title
   - `"linkedin"` — long-form text, ≤3000 chars, 3–5 hashtags, no cards
   - `"x"` — single tweet (≤280) or thread of up to 25, 0–2 hashtags
   - `"instagram"` — 1–10 carousel + ≤2200 char caption, 5–30 hashtags
@@ -186,7 +193,7 @@ node $SKILL/scripts/render.mjs <drafts_root>/2026-05-08/post.json
 python3 $SKILL/scripts/make-post-md.py <drafts_root>/2026-05-08/post.json
 ```
 
-## Source ladder (v1.7.0)
+## Source ladder
 
 The skill tracks every public source via the Tier system in
 [`references/editorial-sop.md`](references/editorial-sop.md). Summary:
@@ -247,11 +254,17 @@ you launched them with. Just adjust the install command.
 WSL2 works out of the box; bare Windows requires translating paths to
 `%APPDATA%`-style equivalents in your config.json. PRs welcome.
 
-**"no config.json found"** — set `WAYAMZPOST_CONFIG` to your config
-path, or place it at `~/.config/wayamzpost/config.json`.
-The legacy `XHS_AMAZON_CONFIG` env var and
-`~/.config/amazon-xhs-poster/config.json` path are still accepted as a
-fallback for existing installs.
+**"no config.json found"** — the skill resolves config in this order;
+first match wins:
+
+1. `--config <path>` CLI arg (when supported by the script)
+2. `$WAYAMZPOST_CONFIG` environment variable
+3. `~/.config/wayamzpost/config.json` (canonical default)
+4. `$XHS_AMAZON_CONFIG` (legacy env var, kept for existing installs)
+5. `~/.config/amazon-xhs-poster/config.json` (legacy path)
+
+If none of those exist, the validator refuses to run and prints this
+list. Set one of the above to fix.
 
 **"persona.brand_cn must be ..."** — your `post.json.persona.brand_cn`
 doesn't match `config.persona.brand_cn`. Re-run `init-day.py` to write
@@ -285,14 +298,20 @@ broad-SEO tags and add topic-specific ones.
 ## Running tests
 
 ```bash
-# Python (53 tests covering validate / init-day / make-post-md / history)
+# Python (55 tests covering validate / init-day / make-post-md / history,
+# including bilingual edge cases and regression tests for the v1.8 audit fixes)
 pip3 install pytest
 pytest tests/python/ -v
 
 # Node (6 tests covering render.mjs empty-cards path + validation gate)
 cd tests/node && npm install && npm test
+```
 
-# Public-source decay audit (network-dependent, not in CI)
+## Production audits (not tests; run on demand)
+
+```bash
+# Source-decay check — hits all 11 Tier A/B URLs, flags 4xx / redirects / stale.
+# Network-dependent; not in CI. Run monthly.
 node scripts/audit-sources.mjs
 ```
 

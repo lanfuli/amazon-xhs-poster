@@ -68,9 +68,12 @@ esac
 
 PORT="${1:-9222}"
 
-# Validate port is numeric to avoid surprises like passing --help here.
-if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
-  echo "Error: PORT must be a numeric value (got: $PORT)"
+# Validate port is numeric. Use base-10 explicitly via 10# prefix so a
+# leading-zero input like "0077" is interpreted as decimal 77 (would
+# otherwise be octal 63 in bash arithmetic, then fail the range check
+# with a confusing error).
+if ! [[ "$PORT" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Error: PORT must be a positive decimal integer (got: $PORT)"
   echo "Run: bash scripts/launch-chrome-debug.sh --help"
   exit 1
 fi
@@ -79,17 +82,41 @@ if (( PORT < 1024 || PORT > 65535 )); then
   exit 1
 fi
 
-# macOS-only path; if you're on Linux, replace with `google-chrome` or
-# `chromium-browser` and adjust the quit logic.
-if [[ "$(uname -s)" != "Darwin" ]]; then
-  echo "This launch script targets macOS. On Linux, run:"
-  echo "  google-chrome --remote-debugging-port=$PORT &"
-  exit 1
-fi
-
-CHROME_APP="/Applications/Google Chrome.app"
-CHROME_BIN="$CHROME_APP/Contents/MacOS/Google Chrome"
+# Cross-platform Chrome binary detection. Auto-resolves the right binary
+# for macOS / Linux / WSL2 / Windows-Git-Bash.
 LAUNCH_LOG="/tmp/chrome-debug-launch.log"
+OS="$(uname -s)"
+CHROME_BIN=""
+case "$OS" in
+  Darwin)
+    CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    ;;
+  Linux)
+    # Try common Linux Chrome / Chromium binaries in priority order.
+    for cand in google-chrome google-chrome-stable chromium chromium-browser; do
+      if command -v "$cand" >/dev/null 2>&1; then
+        CHROME_BIN="$(command -v "$cand")"
+        break
+      fi
+    done
+    ;;
+  CYGWIN*|MINGW*|MSYS*)
+    # Windows-Git-Bash. Fall back to typical install paths.
+    for cand in \
+      "/c/Program Files/Google/Chrome/Application/chrome.exe" \
+      "/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"; do
+      if [[ -x "$cand" ]]; then
+        CHROME_BIN="$cand"
+        break
+      fi
+    done
+    ;;
+  *)
+    echo "Unsupported OS: $OS"
+    echo "Edit launch-chrome-debug.sh to add a CHROME_BIN entry for your platform."
+    exit 1
+    ;;
+esac
 # Chrome 136+ refuses --remote-debugging-port with the default user profile
 # (security hardening to prevent malicious sites from sniffing logged-in
 # sessions). We MUST use a separate user-data-dir. Pick a persistent path
@@ -97,13 +124,16 @@ LAUNCH_LOG="/tmp/chrome-debug-launch.log"
 # stays valid until cookies expire (~30 days for X/LinkedIn).
 PROFILE_DIR="${HOME}/.config/wayamzpost/chrome-debug-profile"
 
-if [[ ! -x "$CHROME_BIN" ]]; then
-  echo "Google Chrome binary not found at:"
-  echo "  $CHROME_BIN"
+if [[ -z "$CHROME_BIN" || ! -x "$CHROME_BIN" ]]; then
+  echo "Google Chrome / Chromium binary not found."
+  if [[ "$OS" == "Darwin" ]]; then
+    echo "Looked for: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  elif [[ "$OS" == "Linux" ]]; then
+    echo "Tried: google-chrome, google-chrome-stable, chromium, chromium-browser (none on PATH)"
+  fi
   echo ""
-  echo "If Chrome is installed under a different path (Canary, Beta, custom),"
-  echo "edit CHROME_BIN at the top of this script. Otherwise install Chrome"
-  echo "from https://www.google.com/chrome/"
+  echo "Install Chrome from https://www.google.com/chrome/  OR  edit CHROME_BIN"
+  echo "in launch-chrome-debug.sh to point at your binary (e.g. Canary, Brave)."
   exit 1
 fi
 

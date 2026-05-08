@@ -1,6 +1,6 @@
 {
   "$schema_version": "1.0",
-  "_comment": "EN-default variant of config.example.json. Use this if your output_language is 'en' (Lemon8 / LinkedIn / X / Instagram, English audience). For zh-default (Xiaohongshu native), use config.example.json instead. Same schema, just EN-friendly defaults: persona placeholders are English, must_contain is ['Amazon'], forbidden_brands_in_copy doesn't include the original author's zh-only entries. Copy this file to ~/.config/wayamzpost/config.json (or set WAYAMZPOST_CONFIG=<path>) and fill in your persona. Legacy XHS_AMAZON_CONFIG / ~/.config/amazon-xhs-poster/config.json are accepted as fallbacks.",
+  "_comment": "EN-default variant of config.example.json. Use this if your output_language is 'en' (LinkedIn / X / Instagram, English audience). For zh-default (Xiaohongshu native), use config.example.json instead. Same schema, just EN-friendly defaults: persona placeholders are English, must_contain is ['Amazon'], forbidden_brands_in_copy doesn't include the original author's zh-only entries. Copy this file to ~/.config/wayamzpost/config.json (or set WAYAMZPOST_CONFIG=<path>) and fill in your persona. Legacy XHS_AMAZON_CONFIG / ~/.config/amazon-xhs-poster/config.json are accepted as fallbacks.",
 
   "persona": {
     "brand_cn": "REPLACE_ME — your account display name (e.g. 'Vincent in Seattle')",
@@ -12,16 +12,16 @@
   },
 
   "output_language": "en",
-  "_output_language_help": "en = English output (default for Lemon8 / LinkedIn / X / Instagram). zh = Chinese output (use config.example.json for that). Switching output_language auto-flips must_contain / cta_tokens / decision_verbs to language-appropriate defaults below — but you can override any of those explicitly.",
+  "_output_language_help": "en = English output (default for LinkedIn / X / Instagram). zh = Chinese output (use config.example.json for that). Switching output_language auto-flips must_contain / cta_tokens / decision_verbs to language-appropriate defaults below — but you can override any of those explicitly.",
 
-  "platform": "xiaohongshu",
-  "_platform_help": "Default 'xiaohongshu' so the post-en.example.json (XHS-shaped EN example) validates against this config out-of-the-box. EN users on a different platform can change this to 'lemon8' / 'linkedin' / 'x' / 'instagram'; title_constraints.max_chars=null lets the validator use the right platform preset. See references/platforms.md.",
+  "platform": "linkedin",
+  "_platform_help": "Default 'linkedin' for EN users since LinkedIn is the most common EN-first surface for Amazon-seller content. Change to 'xiaohongshu' / 'x' / 'instagram' as needed. With title_constraints.max_chars=null below, the validator auto-uses each platform's preset cap. The XHS-shaped EN example (post-en.example.json) still validates if you flip platform back to xiaohongshu. See references/platforms.md.",
 
   "title_constraints": {
     "max_chars": null,
     "must_contain": ["Amazon"]
   },
-  "_title_help": "null lets the validator use each platform preset (XHS 20, Lemon8 30, LinkedIn/X/Instagram no separate title cap). Set an explicit number only if you want a stricter account-level cap.",
+  "_title_help": "null lets the validator use each platform preset (XHS 20, LinkedIn/X/Instagram no separate title cap). Set an explicit number only if you want a stricter account-level cap.",
 
   "_cta_tokens_help": "Optional override. EN default: ['like', 'save', 'follow', 'comment', 'share', 'subscribe']. ZH default: ['点赞', '收藏', '关注', '不迷路', '评论']. Leave null to use language default.",
   "cta_tokens": null,
@@ -49,6 +49,7 @@
     "ppc land"
   ],
 
+  "_angle_quotas_help": "Each post is tagged with one category. The validator runs a 14-day rolling check: if the recent 14 days already contain `ceiling` posts in this category, you get a soft-warn (publish anyway, but consider rotating). `floor` is the recommended minimum to keep the rotation balanced. `color` drives the card's accent palette. Tweak to match your account's actual content mix.",
   "angle_quotas": {
     "amazon-news":           { "floor": 2, "ceiling": 5, "color": "amber"  },
     "white-hat-tactic":      { "floor": 2, "ceiling": 5, "color": "green"  },

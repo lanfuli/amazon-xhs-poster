@@ -36,7 +36,7 @@ persona must match what's in `post.json.persona.brand_cn` exactly, so
 The biggest UX lever after persona. Set `config.platform`:
 
 ```json
-"platform": "xiaohongshu"   // or lemon8 / linkedin / x / instagram
+"platform": "xiaohongshu"   // or linkedin / x / instagram
 ```
 
 This drives **everything** about how the post is shaped: title length,
@@ -48,7 +48,6 @@ Quick reference:
 | Platform     | Cards | Title cap | Body cap | Hashtags  | Best for |
 |--------------|-------|-----------|----------|-----------|----------|
 | xiaohongshu  | 6–9   | 20 chars  | (soft)   | 5–10 (≤12)| ZH carousel; the original target |
-| lemon8       | 6–10  | 30 chars  | 2000     | 5–15 (≤30)| EN carousel; XHS's Western cousin |
 | linkedin     | 0     | (none)    | 3000     | 3–5 (≤50) | B2B long-form text |
 | x            | 0     | (none)    | 280/post | 0–2       | Single tweet or thread |
 | instagram    | 1–10  | (none)    | 2200     | 5–30 (≤30)| Lifestyle / visual-first |
@@ -57,7 +56,7 @@ Full per-platform rules, character-count gotchas, and cross-posting
 workflows live in [`platforms.md`](platforms.md). Each platform has its
 own example post in `examples/`:
 - `post.example.json` (xiaohongshu / ZH)
-- `post-en.example.json` (xiaohongshu / EN, but works as Lemon8 starter)
+- `post-en.example.json` (xiaohongshu / EN)
 - `post-linkedin.example.json` (LinkedIn text-only)
 - `post-x.example.json` (X thread)
 - `post-instagram.example.json` (Instagram carousel)
@@ -65,8 +64,8 @@ own example post in `examples/`:
 ## 3. Output language
 
 The skill ships with two language tracks: **ZH** (default, optimized for
-Xiaohongshu native audience) and **EN** (for Lemon8 / LinkedIn / X /
-Instagram / English-speaking creator platforms).
+Xiaohongshu native audience) and **EN** (for LinkedIn / X / Instagram /
+English-speaking creator platforms).
 
 ```json
 "output_language": "zh"   // or "en"
@@ -283,12 +282,12 @@ it.
   matches the renderer's CSS contract. (Only applies to platforms that
   render cards.)
 - The card count range for each platform — these mirror the platform's
-  actual carousel limit (XHS 6–9, Lemon8 6–10, IG 1–10). Going outside
-  the platform's range will produce uploads that fail or look wrong.
+  actual carousel limit (XHS 6–9, IG 1–10). Going outside the platform's
+  range will produce uploads that fail or look wrong.
 - `append_hashtags_to_content: true` for carousel platforms — search
-  reach on XHS / Lemon8 / IG depends on in-body hashtags, not just the
-  tag field. (Validator skips this requirement for LinkedIn and X where
-  it doesn't apply.)
+  reach on XHS / IG depends on in-body hashtags, not just the tag field.
+  (Validator skips this requirement for LinkedIn and X where it doesn't
+  apply.)
 
 If you find yourself wanting to change these, it's worth pausing and asking
 why — they're shaped by platform constraints, not author preference. If

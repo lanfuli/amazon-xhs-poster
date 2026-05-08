@@ -23,9 +23,9 @@ for most operators.
   liability
 - You have access to genuine browser automation tooling (like Browser-Use
   with proper session warming) that you've tested independently
-- You're publishing to a non-XHS surface (Lemon8, Instagram, LinkedIn,
-  X via official API) where the API is documented and your account is
-  in good standing
+- You're publishing to a non-XHS surface (Instagram, LinkedIn, or X via
+  official API) where the API is documented and your account is in good
+  standing
 
 ## How to enable
 

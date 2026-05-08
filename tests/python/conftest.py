@@ -107,7 +107,7 @@ def write_config(tmp_path):
 
 
 def _build_carousel_post(platform, language, **overrides):
-    """A platform-valid carousel-style post (XHS / Lemon8 / IG)."""
+    """A platform-valid carousel-style post (XHS / IG)."""
     is_zh = language == "zh"
     persona_name = overrides.get("brand_cn") or ("可乐讲卖货" if is_zh else "Test Brand")
     title = overrides.get("title", "亚马逊测试标题" if is_zh else "Amazon test title")
@@ -239,7 +239,7 @@ def make_post(tmp_path):
     Override fields via overrides kwarg. Automatically fixes paths block.
     """
     def _make(platform="xiaohongshu", language="zh", **overrides):
-        if platform in ("xiaohongshu", "lemon8", "instagram"):
+        if platform in ("xiaohongshu", "instagram"):
             post = _build_carousel_post(platform, language, **overrides)
         else:
             post = _build_text_post(platform, language, **overrides)

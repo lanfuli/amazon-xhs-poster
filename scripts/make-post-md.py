@@ -47,7 +47,6 @@ HEADERS_BY_LANG = {
         "h1_default": "小红书亚马逊主题",
         "h1_per_platform": {
             "xiaohongshu": "小红书亚马逊主题",
-            "lemon8":      "Lemon8 亚马逊主题",
             "linkedin":    "LinkedIn 亚马逊帖子",
             "x":           "X 亚马逊帖子",
             "instagram":   "Instagram 亚马逊主题",
@@ -65,7 +64,6 @@ HEADERS_BY_LANG = {
         "no_render": "_(尚未渲染，先跑 render.mjs)_",
         "footer_per_platform": {
             "xiaohongshu": "生成于 {ts} · 发布方式：手动上传到小红书 APP",
-            "lemon8":      "生成于 {ts} · 发布方式：手动上传到 Lemon8 APP",
             "linkedin":    "生成于 {ts} · 发布方式：复制粘贴到 LinkedIn",
             "x":           "生成于 {ts} · 发布方式：复制粘贴到 X / Twitter",
             "instagram":   "生成于 {ts} · 发布方式：手动上传到 Instagram",
@@ -75,7 +73,6 @@ HEADERS_BY_LANG = {
         "h1_default": "Amazon Seller Note",
         "h1_per_platform": {
             "xiaohongshu": "Amazon Seller Note",
-            "lemon8":      "Amazon Seller Note (Lemon8)",
             "linkedin":    "Amazon Seller Post (LinkedIn)",
             "x":           "Amazon Seller Post (X)",
             "instagram":   "Amazon Seller Carousel (Instagram)",
@@ -93,7 +90,6 @@ HEADERS_BY_LANG = {
         "no_render": "_(not rendered yet — run render.mjs first)_",
         "footer_per_platform": {
             "xiaohongshu": "Generated {ts} · publish manually to Xiaohongshu",
-            "lemon8":      "Generated {ts} · publish manually to Lemon8",
             "linkedin":    "Generated {ts} · paste manually into LinkedIn",
             "x":           "Generated {ts} · paste manually into X / Twitter",
             "instagram":   "Generated {ts} · publish manually to Instagram",
@@ -104,7 +100,6 @@ HEADERS_BY_LANG = {
 
 PLATFORM_FORMAT = {
     "xiaohongshu": "carousel",
-    "lemon8":      "carousel",
     "instagram":   "carousel-with-caption",
     "linkedin":    "long-form-text",
     "x":           "post-or-thread",
@@ -257,7 +252,7 @@ def main():
     parser.add_argument("--language", default=None,
                         help="override language: zh | en")
     parser.add_argument("--platform", default=None,
-                        help="override platform: xiaohongshu | lemon8 | linkedin | x | instagram")
+                        help="override platform: xiaohongshu | linkedin | x | instagram")
     args = parser.parse_args()
 
     post_path = Path(args.post_json).expanduser().resolve()
@@ -291,6 +286,18 @@ def main():
             cards.append(png.name)
         for jpg in sorted(cards_dir.glob("card_*.jpg")):
             cards.append(jpg.name)
+        # Manifest missing AND no card PNG/JPG files found = render never
+        # ran (or crashed before writing anything). Without a manifest we
+        # can't trust the carousel shape. Surface this clearly so the user
+        # doesn't ship a post.md with an empty cards list.
+        if not cards and (cards_dir.exists() or True):
+            print(
+                "warning: render_manifest.json missing AND no card_*.png/jpg "
+                "files found. Run scripts/render.mjs first; if it crashed, "
+                "see cards/.render-in-progress for diagnostics. Generated "
+                "post.md will list zero cards.",
+                file=sys.stderr,
+            )
 
     timestamp = datetime.now(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%d %H:%M %Z")
 
