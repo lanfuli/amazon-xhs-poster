@@ -162,6 +162,13 @@ def main():
         "instagram":   {"title_max": 0,  "card_min": 1, "card_max": 10, "renders_cards": True},
     }
     if platform not in PLATFORM_DEFAULTS:
+        # Surface invalid platform clearly. Common case: user upgraded from
+        # an older version that supported `lemon8` (removed in v1.8.0).
+        print(
+            f"warning: unknown platform={platform!r} in config; falling back to "
+            f"'xiaohongshu'. supported: {sorted(PLATFORM_DEFAULTS)}",
+            file=sys.stderr,
+        )
         platform = "xiaohongshu"
     p_defaults = PLATFORM_DEFAULTS[platform]
 
@@ -170,16 +177,28 @@ def main():
         "en": "Stop the scroll in 3 seconds, earn a follow or save",
     }[language]
 
-    # Persona sanity check — if both signature and brand_cn are empty,
-    # every rendered card would have a blank footer, with no warning.
-    # We surface the issue here so the user fixes their config now.
+    # Persona sanity check — fail fast on three states the user shouldn't
+    # ship with: (a) both signature and brand_cn empty (silent blank
+    # footer), (b) brand_cn still set to the REPLACE_ME placeholder from
+    # config.example.json, (c) brand_cn or identity is the placeholder.
     sig_raw = (persona_cfg.get("signature") or "").strip()
     brand_raw = (persona_cfg.get("brand_cn") or "").strip()
+    identity_raw = (persona_cfg.get("identity") or "").strip()
     if not sig_raw and not brand_raw:
         sys.exit(
             "config.persona.brand_cn and config.persona.signature are BOTH empty. "
             "Set at least one (typically brand_cn — signature defaults to it). "
             "Without a signature, every rendered card footer will be blank."
+        )
+    placeholder_fields = []
+    for field, value in (("brand_cn", brand_raw), ("identity", identity_raw), ("signature", sig_raw)):
+        if value.startswith("REPLACE_ME"):
+            placeholder_fields.append(field)
+    if placeholder_fields:
+        sys.exit(
+            f"config.persona has unfilled REPLACE_ME placeholder(s): {placeholder_fields}. "
+            "Open your config.json and replace the REPLACE_ME values with your "
+            "actual brand / identity / signature before initializing a draft."
         )
 
     post_json_path = job_dir / "post.json"

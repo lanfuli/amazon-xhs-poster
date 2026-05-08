@@ -404,7 +404,34 @@ def bullets_have_parallel_dimensions(bullets: list) -> bool:
 # ---------- Validation ----------
 
 def validate(post_path: Path, config: dict) -> tuple[list[str], list[str], dict, list[str]]:
-    post = json.loads(post_path.read_text())
+    # Read + parse the post file with explicit guards. Without these, a
+    # corrupt post.json (trailing comma, unbalanced brace) would surface
+    # as a Python traceback to the user — and render.mjs runs validate.py
+    # as a subprocess BEFORE doing its own JSON.parse, so render.mjs's
+    # nice error message never fires unless validate.py reports cleanly.
+    try:
+        raw = post_path.read_text()
+    except OSError as err:
+        return (
+            [f"cannot read {post_path}: {err}"],
+            [], {"post_json": str(post_path)}, [],
+        )
+    try:
+        post = json.loads(raw)
+    except json.JSONDecodeError as err:
+        return (
+            [
+                f"post.json is malformed JSON: {err.msg} (line {err.lineno}, col {err.colno})",
+                f"file: {post_path}",
+                "common causes: trailing commas, unbalanced braces, unescaped quotes inside strings",
+            ],
+            [], {"post_json": str(post_path)}, [],
+        )
+    if not isinstance(post, dict):
+        return (
+            [f"post.json top-level must be a JSON object, got {type(post).__name__}"],
+            [], {"post_json": str(post_path)}, [],
+        )
     errors: list[str] = []
     warnings: list[str] = []
     info: list[str] = []

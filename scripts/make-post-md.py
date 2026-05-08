@@ -153,6 +153,17 @@ def resolve_platform(cli_platform: str | None, post: dict, cli_config: str | Non
     cfg_platform = (cfg.get("platform") or "").strip().lower()
     if cfg_platform in PLATFORM_FORMAT:
         return cfg_platform
+    # Fall through to default. If the user set an unknown platform
+    # somewhere (e.g. legacy `lemon8` from before v1.8.0), surface that
+    # so they can fix the config — silent fallback was confusing.
+    for source_name, source_val in (("post.platform", pj_platform), ("config.platform", cfg_platform)):
+        if source_val and source_val not in PLATFORM_FORMAT:
+            print(
+                f"warning: unknown platform={source_val!r} in {source_name}; "
+                f"falling back to 'xiaohongshu'. supported: {sorted(PLATFORM_FORMAT)}",
+                file=sys.stderr,
+            )
+            break
     return "xiaohongshu"
 
 
