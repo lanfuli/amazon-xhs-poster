@@ -9,11 +9,10 @@ your topic-of-the-day into 6–9 image cards + a publish-ready markdown
 post, and supports five target platforms (Xiaohongshu / Lemon8 /
 LinkedIn / X / Instagram) in Chinese or English.
 
-> **Skill identifier:** `amazon-xhs-poster` (the directory name and
+> **Skill identifier:** `wayamzpost` (the directory name and
 > `SKILL.md` `name:` field — that's what Claude Code's trigger system
-> matches against). **Project brand:** `wayamzpost`. The two are
-> separate by design so the skill can keep its keyword-trigger
-> discoverability while the GitHub project lives under its own name.
+> matches against). **Project brand:** `wayamzpost`. The skill identifier
+> and GitHub project name now intentionally match.
 
 This is a packaged version of a methodology that has been running
 daily since early 2026. It encodes:
@@ -46,27 +45,27 @@ daily since early 2026. It encodes:
 
 ```bash
 # 1. Clone into your Claude skills directory. The directory name must
-#    match the skill identifier (amazon-xhs-poster) so Claude Code's
+#    match the skill identifier (wayamzpost) so Claude Code's
 #    trigger system can find it.
 git clone https://github.com/lanfuli/wayamzpost.git \
-  ~/.claude/skills/amazon-xhs-poster
+  ~/.claude/skills/wayamzpost
 
 # 2. Install dependencies — Python 3.9+, Node.js 18+
-cd ~/.claude/skills/amazon-xhs-poster
+cd ~/.claude/skills/wayamzpost
 npm install                          # playwright + node tests
 npx playwright install chromium      # one-time, ~150 MB
 
 # 3. Create your config — pick the variant that matches your default
 #    output language. Both have the same schema; defaults differ.
-mkdir -p ~/.config/amazon-xhs-poster
+mkdir -p ~/.config/wayamzpost
 
 #    Option A: zh-default (Xiaohongshu native audience):
-cp config.example.json ~/.config/amazon-xhs-poster/config.json
+cp config.example.json ~/.config/wayamzpost/config.json
 
 #    Option B: en-default (LinkedIn / X / Instagram / Lemon8 / EN-Xiaohongshu):
-cp config-en.example.json ~/.config/amazon-xhs-poster/config.json
+cp config-en.example.json ~/.config/wayamzpost/config.json
 
-$EDITOR ~/.config/amazon-xhs-poster/config.json
+$EDITOR ~/.config/wayamzpost/config.json
 ```
 
 > ⚠ **Don't commit `config.json` to a public repo.** It contains your
@@ -104,11 +103,9 @@ sources daily and writes raw signal into
 `<drafts_root>/<DATE>/research/gated-signal.md`. Editorial stage folds
 relevant items into `topic.md`.
 
-> ⚠ **`launch-chrome-debug.sh` quits any running Chrome and relaunches it
-> with a separate debug profile.** Save your tabs first. The script is
-> idempotent — re-running it while Chrome is already debug-listening just
-> exits early — but the *first* invocation closes your normal Chrome
-> session.
+> ⚠ **`launch-chrome-debug.sh` starts a separate Chrome debug profile.**
+> Your normal Chrome session is not touched. The script is idempotent —
+> re-running it while the debug Chrome is already listening just exits early.
 
 ```bash
 # 1. Flip gated_sources.enabled = true in config.json
@@ -169,7 +166,7 @@ under `<desktop_root>/<DATE>/cards/` — handy for AirDrop / iCloud sync.
 Each script is also runnable on its own:
 
 ```bash
-SKILL=~/.claude/skills/amazon-xhs-poster
+SKILL=~/.claude/skills/wayamzpost
 
 # 1. Initialize today (idempotent)
 python3 $SKILL/scripts/init-day.py
@@ -214,7 +211,7 @@ by `audit-sources.mjs`. Tier D entries are kept in the doc as a
   [`references/publish-adapter.md`](references/publish-adapter.md)
   before enabling.
 - **Multi-account management.** One config = one persona. Run two
-  configs (different `XHS_AMAZON_CONFIG` paths) if you operate
+  configs (different `WAYAMZPOST_CONFIG` paths) if you operate
   multiple accounts.
 - **Real-time scraping of paid feeds beyond the 6 supported sources.**
   Source URLs in `topic.sources[]` come from your own research; the
@@ -232,8 +229,8 @@ language / audience / persona.
 ## Notation
 
 - `${SKILL_DIR}` in commands → substitute literally with your install
-  path (e.g. `~/.claude/skills/amazon-xhs-poster`), or
-  `export SKILL_DIR=~/.claude/skills/amazon-xhs-poster` once per shell.
+  path (e.g. `~/.claude/skills/wayamzpost`), or
+  `export SKILL_DIR=~/.claude/skills/wayamzpost` once per shell.
 - `<DRAFTS_ROOT>` in example JSON files → not a real syntax. It's a
   placeholder for whatever path you put in `config.paths.drafts_root`.
   The examples use it because the absolute path is environment-specific;
@@ -250,8 +247,11 @@ you launched them with. Just adjust the install command.
 WSL2 works out of the box; bare Windows requires translating paths to
 `%APPDATA%`-style equivalents in your config.json. PRs welcome.
 
-**"no config.json found"** — set `XHS_AMAZON_CONFIG` to your config
-path, or place it at `~/.config/amazon-xhs-poster/config.json`.
+**"no config.json found"** — set `WAYAMZPOST_CONFIG` to your config
+path, or place it at `~/.config/wayamzpost/config.json`.
+The legacy `XHS_AMAZON_CONFIG` env var and
+`~/.config/amazon-xhs-poster/config.json` path are still accepted as a
+fallback for existing installs.
 
 **"persona.brand_cn must be ..."** — your `post.json.persona.brand_cn`
 doesn't match `config.persona.brand_cn`. Re-run `init-day.py` to write

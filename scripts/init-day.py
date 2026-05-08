@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize today's Amazon XHS draft directory.
+"""Initialize today's wayamzpost draft directory.
 
 Creates:
   <drafts_root>/<DATE>/
@@ -14,8 +14,10 @@ Defaults today's date to America/Los_Angeles (override with --date YYYY-MM-DD).
 
 Resolution order for config:
   1. --config <path>
-  2. XHS_AMAZON_CONFIG env var
-  3. ~/.config/amazon-xhs-poster/config.json
+  2. WAYAMZPOST_CONFIG env var
+  3. XHS_AMAZON_CONFIG env var (legacy)
+  4. ~/.config/wayamzpost/config.json
+  5. ~/.config/amazon-xhs-poster/config.json (legacy)
 """
 from __future__ import annotations
 
@@ -28,17 +30,23 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-DEFAULT_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
+DEFAULT_CONFIG_PATH = Path("~/.config/wayamzpost/config.json").expanduser()
+LEGACY_CONFIG_PATH = Path("~/.config/amazon-xhs-poster/config.json").expanduser()
 
 
 def resolve_config_path(cli_path: str | None) -> Path | None:
     if cli_path:
         return Path(cli_path).expanduser().resolve()
-    env = os.environ.get("XHS_AMAZON_CONFIG")
+    env = os.environ.get("WAYAMZPOST_CONFIG")
     if env:
         return Path(env).expanduser().resolve()
+    legacy_env = os.environ.get("XHS_AMAZON_CONFIG")
+    if legacy_env:
+        return Path(legacy_env).expanduser().resolve()
     if DEFAULT_CONFIG_PATH.exists():
         return DEFAULT_CONFIG_PATH
+    if LEGACY_CONFIG_PATH.exists():
+        return LEGACY_CONFIG_PATH
     return None
 
 
@@ -47,8 +55,9 @@ def load_config(cli_path: str | None) -> tuple[dict, Path]:
     if not path:
         sys.exit(
             "no config.json found; copy config.example.json from the skill, "
-            "fill it in, and either pass --config <path>, set XHS_AMAZON_CONFIG, "
-            f"or place it at {DEFAULT_CONFIG_PATH}"
+            "fill it in, and either pass --config <path>, set WAYAMZPOST_CONFIG, "
+            f"or place it at {DEFAULT_CONFIG_PATH} "
+            f"(legacy fallback: {LEGACY_CONFIG_PATH})"
         )
     if not path.exists():
         sys.exit(f"config not found: {path}")

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Amazon XHS card renderer — Playwright-driven, theme-tinted, deterministic.
+ * wayamzpost card renderer — Playwright-driven, theme-tinted, deterministic.
  *
  * Reads post.json, runs sibling validate.py first (hard-fail gate), then
  * generates one HTML + PNG per card under <paths.cards_dir> (default:
@@ -14,8 +14,10 @@
  * Config resolution (used for the sibling validate.py only — render itself
  * gets all parameters from post.json):
  *   1. --config <path>
- *   2. XHS_AMAZON_CONFIG env var
- *   3. ~/.config/amazon-xhs-poster/config.json
+ *   2. WAYAMZPOST_CONFIG env var
+ *   3. XHS_AMAZON_CONFIG env var (legacy)
+ *   4. ~/.config/wayamzpost/config.json
+ *   5. ~/.config/amazon-xhs-poster/config.json (legacy)
  */
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
@@ -66,7 +68,7 @@ const validator = spawnSync('python3', validatorArgs, { stdio: 'pipe', encoding:
 if (validator.status !== 0) {
   process.stderr.write(validator.stdout || '');
   process.stderr.write(validator.stderr || '');
-  console.error('Amazon XHS post validation failed before render');
+  console.error('wayamzpost validation failed before render');
   process.exit(validator.status || 1);
 }
 

@@ -10,7 +10,7 @@
 # Notes:
 # - Chrome 136+ refuses --remote-debugging-port with the default user
 #   profile (security hardening). This script launches Chrome with a
-#   DEDICATED profile at ~/.config/amazon-xhs-poster/chrome-debug-profile/
+#   DEDICATED profile at ~/.config/wayamzpost/chrome-debug-profile/
 #   — a SEPARATE Chrome instance from your daily Chrome. Your daily Chrome
 #   is never touched.
 # - First run: a fresh Chrome window opens with empty profile. You manually
@@ -20,7 +20,7 @@
 # - Subsequent runs: if the debug Chrome instance is already running, the
 #   script detects it and exits immediately (no relaunch). Idempotent.
 # - To start fresh / wipe logins:
-#     rm -rf ~/.config/amazon-xhs-poster/chrome-debug-profile/
+#     rm -rf ~/.config/wayamzpost/chrome-debug-profile/
 
 set -euo pipefail
 
@@ -37,7 +37,7 @@ USAGE
 
 WHAT IT DOES
   Launches a SEPARATE Chrome instance with a dedicated profile at
-  ~/.config/amazon-xhs-poster/chrome-debug-profile/ and
+  ~/.config/wayamzpost/chrome-debug-profile/ and
   --remote-debugging-port=<PORT>. Your daily Chrome is untouched —
   the two run in parallel as separate Chrome windows.
 
@@ -60,7 +60,7 @@ WHY YOU'D RUN THIS
   This script is the canonical way to start that Chrome.
 
 TO RESET (wipe all logins)
-  rm -rf ~/.config/amazon-xhs-poster/chrome-debug-profile/
+  rm -rf ~/.config/wayamzpost/chrome-debug-profile/
 EOF
     exit 0
     ;;
@@ -95,7 +95,7 @@ LAUNCH_LOG="/tmp/chrome-debug-launch.log"
 # sessions). We MUST use a separate user-data-dir. Pick a persistent path
 # so cookies survive reboots — the user only logs in once and the profile
 # stays valid until cookies expire (~30 days for X/LinkedIn).
-PROFILE_DIR="${HOME}/.config/amazon-xhs-poster/chrome-debug-profile"
+PROFILE_DIR="${HOME}/.config/wayamzpost/chrome-debug-profile"
 
 if [[ ! -x "$CHROME_BIN" ]]; then
   echo "Google Chrome binary not found at:"

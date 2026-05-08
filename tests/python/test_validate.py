@@ -249,6 +249,18 @@ def test_xiaohongshu_title_over_20_chars_fails(write_config, make_post, run_vali
     assert any("exceeds 20 characters" in e for e in payload["errors"])
 
 
+# --- Source URLs ---
+
+def test_http_source_url_fails(write_config, make_post, run_validate):
+    cfg = write_config(platform="x", output_language="en")
+    post_path, post = make_post(platform="x", language="en")
+    post["topic"]["sources"] = ["http://example.com/source"]
+    post_path.write_text(json.dumps(post, ensure_ascii=False, indent=2))
+    payload, rc = run_validate(post_path, cfg)
+    assert rc != 0
+    assert any("not a real https:// URL" in e for e in payload["errors"])
+
+
 # --- Forbidden brands ---
 
 def test_forbidden_brand_in_content_fails(write_config, make_post, run_validate):

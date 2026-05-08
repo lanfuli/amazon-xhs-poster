@@ -1,6 +1,6 @@
 {
   "$schema_version": "1.0",
-  "_comment": "EN-default variant of config.example.json. Use this if your output_language is 'en' (Lemon8 / LinkedIn / X / Instagram, English audience). For zh-default (Xiaohongshu native), use config.example.json instead. Same schema, just EN-friendly defaults: persona placeholders are English, must_contain is ['Amazon'], forbidden_brands_in_copy doesn't include the original author's zh-only entries. Copy this file to ~/.config/amazon-xhs-poster/config.json (or set XHS_AMAZON_CONFIG=<path>) and fill in your persona.",
+  "_comment": "EN-default variant of config.example.json. Use this if your output_language is 'en' (Lemon8 / LinkedIn / X / Instagram, English audience). For zh-default (Xiaohongshu native), use config.example.json instead. Same schema, just EN-friendly defaults: persona placeholders are English, must_contain is ['Amazon'], forbidden_brands_in_copy doesn't include the original author's zh-only entries. Copy this file to ~/.config/wayamzpost/config.json (or set WAYAMZPOST_CONFIG=<path>) and fill in your persona. Legacy XHS_AMAZON_CONFIG / ~/.config/amazon-xhs-poster/config.json are accepted as fallbacks.",
 
   "persona": {
     "brand_cn": "REPLACE_ME — your account display name (e.g. 'Vincent in Seattle')",
@@ -15,13 +15,13 @@
   "_output_language_help": "en = English output (default for Lemon8 / LinkedIn / X / Instagram). zh = Chinese output (use config.example.json for that). Switching output_language auto-flips must_contain / cta_tokens / decision_verbs to language-appropriate defaults below — but you can override any of those explicitly.",
 
   "platform": "xiaohongshu",
-  "_platform_help": "Default 'xiaohongshu' so the post-en.example.json (XHS-shaped EN example) validates against this config out-of-the-box. EN users on a different platform: change this to 'lemon8' / 'linkedin' / 'x' / 'instagram' AND raise title_constraints.max_chars to match (default 20 is the XHS soft cap; LinkedIn / X / IG accept much longer titles). See references/platforms.md.",
+  "_platform_help": "Default 'xiaohongshu' so the post-en.example.json (XHS-shaped EN example) validates against this config out-of-the-box. EN users on a different platform can change this to 'lemon8' / 'linkedin' / 'x' / 'instagram'; title_constraints.max_chars=null lets the validator use the right platform preset. See references/platforms.md.",
 
   "title_constraints": {
-    "max_chars": 20,
+    "max_chars": null,
     "must_contain": ["Amazon"]
   },
-  "_title_help": "20 chars is the Xiaohongshu soft cap. Increase for other platforms: lemon8 → 30, linkedin / x / instagram → 60+. The validator hard-fails titles longer than max_chars.",
+  "_title_help": "null lets the validator use each platform preset (XHS 20, Lemon8 30, LinkedIn/X/Instagram no separate title cap). Set an explicit number only if you want a stricter account-level cap.",
 
   "_cta_tokens_help": "Optional override. EN default: ['like', 'save', 'follow', 'comment', 'share', 'subscribe']. ZH default: ['点赞', '收藏', '关注', '不迷路', '评论']. Leave null to use language default.",
   "cta_tokens": null,
@@ -74,7 +74,7 @@
   "_gated_sources_help": "Optional research pipeline. When enabled, fetch-gated.mjs walks 6 sources daily and writes <drafts_root>/<DATE>/research/gated-signal.md. RISK: automating logged-in access (X / LinkedIn) may violate ToS. Read references/gated-sources.md before enabling.",
   "gated_sources": {
     "enabled": false,
-    "browser_profile_dir": "~/.config/amazon-xhs-poster/browser-profile",
+    "browser_profile_dir": "~/.config/wayamzpost/browser-profile",
     "lookback_hours": 24,
     "fetch_delay_seconds": [3, 8],
 

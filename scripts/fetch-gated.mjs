@@ -89,40 +89,44 @@ function expandHome(p) {
 
 function resolveConfigPath() {
   if (CONFIG_PATH_OVERRIDE) return path.resolve(expandHome(CONFIG_PATH_OVERRIDE));
+  if (process.env.WAYAMZPOST_CONFIG) return path.resolve(expandHome(process.env.WAYAMZPOST_CONFIG));
   if (process.env.XHS_AMAZON_CONFIG) return path.resolve(expandHome(process.env.XHS_AMAZON_CONFIG));
-  const def = expandHome('~/.config/amazon-xhs-poster/config.json');
+  const def = expandHome('~/.config/wayamzpost/config.json');
   if (fsSync.existsSync(def)) return def;
+  const legacy = expandHome('~/.config/amazon-xhs-poster/config.json');
+  if (fsSync.existsSync(legacy)) return legacy;
   return null;
 }
 
 const cfgPath = resolveConfigPath();
 if (!cfgPath || !fsSync.existsSync(cfgPath)) {
-  const defaultLocation = expandHome('~/.config/amazon-xhs-poster/config.json');
+  const defaultLocation = expandHome('~/.config/wayamzpost/config.json');
   console.error('config.json not found.');
   console.error('');
   console.error('First-time setup (run from skill root):');
-  console.error('  mkdir -p ~/.config/amazon-xhs-poster');
-  console.error('  cp config.example.json ~/.config/amazon-xhs-poster/config.json');
-  console.error('  $EDITOR ~/.config/amazon-xhs-poster/config.json   # fill in persona, paths, set gated_sources.enabled=true');
+  console.error('  mkdir -p ~/.config/wayamzpost');
+  console.error('  cp config.example.json ~/.config/wayamzpost/config.json');
+  console.error('  $EDITOR ~/.config/wayamzpost/config.json   # fill in persona, paths, set gated_sources.enabled=true');
   console.error('');
   console.error(`Default config path: ${defaultLocation}`);
-  console.error('Override via --config <path> or XHS_AMAZON_CONFIG env var.');
+  console.error('Override via --config <path> or WAYAMZPOST_CONFIG env var.');
+  console.error('Legacy XHS_AMAZON_CONFIG and ~/.config/amazon-xhs-poster/config.json are still accepted.');
   process.exit(1);
 }
 const config = JSON.parse(fsSync.readFileSync(cfgPath, 'utf8'));
 const gatedCfg = config.gated_sources || {};
 
-if (!gatedCfg.enabled && !SETUP_MODE) {
+if (!gatedCfg.enabled && !SETUP_MODE && !DRY_RUN) {
   console.error('config.gated_sources.enabled is false. Set it to true to use this script.');
   console.error('See references/gated-sources.md for setup.');
   process.exit(1);
 }
 
 const profileDir = path.resolve(expandHome(
-  gatedCfg.browser_profile_dir || '~/.config/amazon-xhs-poster/browser-profile'
+  gatedCfg.browser_profile_dir || '~/.config/wayamzpost/browser-profile'
 ));
 const draftsRoot = path.resolve(expandHome(
-  (config.paths && config.paths.drafts_root) || '~/xhs-amazon-drafts'
+  (config.paths && config.paths.drafts_root) || '~/wayamzpost-drafts'
 ));
 const lookbackHours = gatedCfg.lookback_hours || 24;
 const fetchDelay = gatedCfg.fetch_delay_seconds || [3, 8];
@@ -140,9 +144,6 @@ const jobDir = path.join(draftsRoot, date);
 const researchDir = path.join(jobDir, 'research');
 const outputPath = path.join(researchDir, 'gated-signal.md');
 
-await fs.mkdir(researchDir, { recursive: true });
-await fs.mkdir(profileDir, { recursive: true });
-
 const browserMode = CONNECT_CDP
   ? `CDP (${CDP_URL}) — connect to existing Chrome`
   : `persistent Chromium profile (${profileDir})`;
@@ -153,13 +154,38 @@ console.log(`date:      ${date}`);
 console.log(`mode:      ${SETUP_MODE ? 'SETUP' : (DRY_RUN ? 'DRY-RUN' : 'FETCH')}`);
 console.log('');
 
+if (DRY_RUN) {
+  const count = (value) => Array.isArray(value) ? value.length : 0;
+  const sourcePlan = [
+    ['X / Twitter', gatedCfg.x?.enabled, `${count(gatedCfg.x?.handles)} handle(s)`],
+    ['LinkedIn', gatedCfg.linkedin?.enabled, `${count(gatedCfg.linkedin?.profiles)} profile(s)`],
+    ['wearesellers.com', gatedCfg.wearesellers?.enabled, `top ${gatedCfg.wearesellers?.top_n || 5}`],
+    ['billiondollarsellers.com', gatedCfg.bds?.enabled, `top ${gatedCfg.bds?.top_n || 5}`],
+    ['corporate.walmart.com', gatedCfg.walmart?.enabled, `top ${gatedCfg.walmart?.top_n || 5}`],
+    ['YouTube', gatedCfg.youtube?.enabled, `${count(gatedCfg.youtube?.channels)} channel(s)`],
+  ];
+  if (!gatedCfg.enabled) {
+    console.log('config.gated_sources.enabled is false; a real fetch would exit before touching any source.');
+  }
+  console.log('Dry run only: no browser launch, no profile directory creation, no network fetch, no output file write.');
+  console.log('');
+  console.log('Source plan:');
+  for (const [label, enabled, detail] of sourcePlan) {
+    console.log(`- ${enabled ? 'enabled ' : 'disabled'} ${label}: ${detail}`);
+  }
+  process.exit(0);
+}
+
+await fs.mkdir(researchDir, { recursive: true });
+await fs.mkdir(profileDir, { recursive: true });
+
 // ----- import playwright (lazy, lets the rest of CLI work without it) -----
 let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch (e) {
   console.error('playwright not installed. Run from the skill root:');
-  console.error('  cd ~/.claude/skills/amazon-xhs-poster');
+  console.error('  cd ~/.claude/skills/wayamzpost');
   console.error('  npm install');
   console.error('  npx playwright install chromium');
   console.error('');
@@ -803,7 +829,7 @@ async function fetchWalmartNews() {
   let sitemapXml;
   try {
     const resp = await fetch('https://corporate.walmart.com/news.sitemap.xml', {
-      headers: { 'User-Agent': 'Mozilla/5.0 amazon-xhs-poster/1.7' },
+      headers: { 'User-Agent': 'Mozilla/5.0 wayamzpost/1.7' },
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     sitemapXml = await resp.text();

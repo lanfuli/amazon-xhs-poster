@@ -16,7 +16,7 @@ scraping tool. By using it you accept the risk on the account being used.
 
 Concrete mitigations the script applies:
 - Uses a **separate Chrome profile** from your daily browser (default
-  `~/.config/amazon-xhs-poster/browser-profile/`) — your main session is
+  `~/.config/wayamzpost/browser-profile/`) — your main session is
   unaffected.
 - **Read-only**: never posts, DMs, follows, or interacts.
 - **Random delay** between handles (default 3–8 sec) to avoid burst
@@ -52,7 +52,7 @@ imported as a module. The skill ships a top-level `package.json` that
 declares it as a dependency. One-time install from the skill root:
 
 ```bash
-cd ~/.claude/skills/amazon-xhs-poster
+cd ~/.claude/skills/wayamzpost
 npm install                          # installs playwright in skill's node_modules
 npx playwright install chromium      # downloads the chromium browser binary
 ```
@@ -63,9 +63,9 @@ If you haven't already created your `config.json` (skipped during the
 main install), do that first:
 
 ```bash
-mkdir -p ~/.config/amazon-xhs-poster
-cp config.example.json ~/.config/amazon-xhs-poster/config.json
-$EDITOR ~/.config/amazon-xhs-poster/config.json
+mkdir -p ~/.config/wayamzpost
+cp config.example.json ~/.config/wayamzpost/config.json
+$EDITOR ~/.config/wayamzpost/config.json
 ```
 
 Then within the config file:
@@ -74,7 +74,7 @@ Then within the config file:
 {
   "gated_sources": {
     "enabled": true,
-    "browser_profile_dir": "~/.config/amazon-xhs-poster/browser-profile",
+    "browser_profile_dir": "~/.config/wayamzpost/browser-profile",
     "lookback_hours": 24,
     "fetch_delay_seconds": [3, 8],
 
@@ -117,7 +117,7 @@ secure" when you try to log in.
 #### Option A — Playwright Chromium (default, simpler)
 
 ```bash
-node ~/.claude/skills/amazon-xhs-poster/scripts/fetch-gated.mjs --setup
+node ~/.claude/skills/wayamzpost/scripts/fetch-gated.mjs --setup
 ```
 
 Opens a Chromium window with a fresh profile (separate from your
@@ -149,13 +149,13 @@ not be secure" warning. Real Chrome accepts CDP from any origin on
 Setup:
 
 ```bash
-cd ~/.claude/skills/amazon-xhs-poster
+cd ~/.claude/skills/wayamzpost
 bash scripts/launch-chrome-debug.sh
 ```
 
 This launches a **separate Chrome window** (parallel to your daily
 Chrome — which is untouched) with a profile dir at
-`~/.config/amazon-xhs-poster/chrome-debug-profile/`. First run is
+`~/.config/wayamzpost/chrome-debug-profile/`. First run is
 empty; you log in to X / LinkedIn / wearesellers manually in that
 window. Cookies persist in the profile dir, so future runs of the
 script don't relaunch Chrome (script is idempotent — sees Chrome
@@ -209,7 +209,7 @@ When `fetch-gated.mjs --connect-cdp` runs:
 
 If logins go bad / you want a clean slate:
 ```bash
-rm -rf ~/.config/amazon-xhs-poster/chrome-debug-profile/
+rm -rf ~/.config/wayamzpost/chrome-debug-profile/
 bash scripts/launch-chrome-debug.sh
 # Log in again in the new Chrome window
 ```
@@ -217,7 +217,7 @@ bash scripts/launch-chrome-debug.sh
 ### 4. Daily fetch
 
 ```bash
-node ~/.claude/skills/amazon-xhs-poster/scripts/fetch-gated.mjs \
+node ~/.claude/skills/wayamzpost/scripts/fetch-gated.mjs \
   --date 2026-05-08
 ```
 
@@ -292,5 +292,5 @@ the script). The rest of the skill works fine without it.
 To wipe the saved profile completely:
 
 ```bash
-rm -rf ~/.config/amazon-xhs-poster/browser-profile/
+rm -rf ~/.config/wayamzpost/browser-profile/
 ```
